@@ -5,13 +5,16 @@ v0.1 只做手动电：施电、记账、榜单、管理。
 """
 
 from nonebot import require
-from nonebot.plugin import PluginMetadata
 
+# require 必须先于任何 import：否则这两个库会以「被普通 import」的方式装载，
+# require 会判定它们不是插件并抛错。
 require("nonebot_plugin_localstore")
 require("nonebot_plugin_alconna")
 require("nonebot_plugin_uninfo")
 
-from .config import Config  # noqa: E402
+from nonebot.plugin import PluginMetadata, inherit_supported_adapters  # noqa: E402
+
+from .config import PluginConfig  # noqa: E402
 
 __plugin_meta__ = PluginMetadata(
     name="Volt-Toy 电击群友",
@@ -23,9 +26,14 @@ __plugin_meta__ = PluginMetadata(
         "zapclear / zapnodo / zapon / zapoff —— 管理"
     ),
     type="application",
+    config=PluginConfig,
+    # 收发走 alconna 的 uniseg、会话信息走 uninfo，因此声明两者共同支持的适配器
+    supported_adapters=inherit_supported_adapters(
+        "nonebot_plugin_alconna",
+        "nonebot_plugin_uninfo",
+    ),
     homepage="https://github.com/your-name/Volt-Toy",
-    config=Config,
-    supported_adapters=None,
+    extra={"author": "Volt-Toy"},
 )
 
 from . import commands as _commands  # noqa: E402,F401

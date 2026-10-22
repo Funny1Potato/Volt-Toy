@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from nonebot import get_driver, get_plugin_config
+from nonebot import get_driver
 from volt_toy_core.service import ZapService
 from volt_toy_core.settings import Settings
 from volt_toy_core.state import RuntimeState
 from volt_toy_core.storage import read_json_list, write_json_list
 
-from .config import Config
+from .config import plugin_config as config
 from .store import WHITELIST_FILE, log, store
-
-config = get_plugin_config(Config)
 
 settings = Settings(
     receive_cap=config.volt_receive_cap,

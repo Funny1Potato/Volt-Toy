@@ -81,8 +81,8 @@ Volt-Toy/
 1. `pip install -e .`（或 `nb plugin install` 本地安装）能拉起依赖。
 2. `python -c "import nonebot_plugin_volt_toy"` 不报错。
 3. 冒烟：`zap @某人`、`zap`、`zapkwh`、`zapinfo`、`zapnodo`。
-4. `Uninfo` 字段确认：`session.user.id`、`session.scene.id`、`session.scene.type`、
-   `session.member.role`、`session.adapter`。代码里都做了 getattr 兜底，但语义要对。
+4. `get_session(bot, event)` 字段确认：`session.scene_path`、`session.adapter`、
+   `session.scene.id/type/is_private`、`session.member.role`（枚举取 `.name`）。
 5. `At` 段字段：优先 `target`，其次 `qq`；显示名 `display`。
 6. `UniMessage.image(raw=bytes)` 可用。
 7. `nb plugin publish` 能通过元数据检查。
@@ -130,3 +130,19 @@ pytest
 - `[tool.setuptools] packages` 同时打包了 `volt_toy_core`；如果之后要独立发布内核，
   需要拆包并把插件改成依赖 `volt-toy-core`。
 - README 里的「未跑过测试」这句，测试通过后要删掉。
+
+## 11. 与参考插件的规范对齐（nonebot_plugin_aigf_master）
+
+按参考插件改过的地方，别再改回去：
+
+1. **require 必须在任何相关 import 之前**，否则库先被普通 import，`require` 会判定它不是插件。
+2. **`supported_adapters=inherit_supported_adapters("nonebot_plugin_alconna", "nonebot_plugin_uninfo")`**，
+   不要写 `None`（发布审核更认「声明了支持的适配器」）。
+3. **配置类叫 `PluginConfig`，并在 config.py 里导出 `plugin_config = get_plugin_config(PluginConfig)`**；
+   字段用 `Field(default, description=...)`，描述会进配置文档。
+4. **Alconna 对象必须强引用**：alconna 规则只持弱引用，`on_alconna(Alconna(...))`
+   可能被 GC，matcher 会静默失效。代码里用 `_cmd()` 收集到 `_ALCONNA_REFS`。
+5. **会话解析不用 Uninfo 依赖注入，改用 `nonebot_plugin_uninfo.get_session(bot, event)`**，
+   失败回落到 alconna `get_target(event, bot)`；会话键用 `适配器 slug:scene_path`。
+6. **群管理角色是枚举**：`member.role.name.lower()`，直接 `str(role)` 会得到 `role.admin`。
+7. 命令 matcher 显式给 `priority` / `block`。
