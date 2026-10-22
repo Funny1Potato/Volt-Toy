@@ -36,6 +36,10 @@ def test_success_text_contains_totals(tmp_path) -> None:
         assert outcome.ok
         assert "小满" in outcome.text
         assert "累计" in outcome.text
+        # 头像夹在中间：被电文案与统计行必须分开
+        assert "累计" not in outcome.main_text
+        assert "累计" in outcome.stats_text
+        assert outcome.text == outcome.main_text + "\n" + outcome.stats_text
         record = store.record("g", "u")
         assert record["num"] == 1
         assert record["kwh"] > 0

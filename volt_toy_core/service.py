@@ -33,6 +33,11 @@ class Outcome:
     ok: bool
     reason: str
     text: str
+    """完整文本（main_text + stats_text），供不能插图或不需要分段的场景使用。"""
+    main_text: str = ""
+    """被电文案（档位 + 连击/暴击附加），发送时放在头像前面。"""
+    stats_text: str = ""
+    """统计行，发送时放在头像后面。"""
     roll: Roll | None = None
     target: str = ""
     kwh: float = 0.0
@@ -159,6 +164,8 @@ class ZapService:
                 ok=False,
                 reason=result.reason,
                 text=head + "\n" + tail,
+                main_text=head,
+                stats_text=tail,
                 roll=roll,
                 target=req.target,
                 total=total,
@@ -176,7 +183,8 @@ class ZapService:
             parts.append(texts.render(texts.pick("combo", scope=req.gid), **values))
         if roll.crit:
             parts.append(texts.render(texts.pick("crit", scope=req.gid), **values))
-        parts.append(
+        main_text = "\n".join(parts)
+        stats_text = (
             f"「{values['target']}」第 {values['n']} 次受电，累计 {values['total']} 度"
             f"（约 {values['fee']} 元），失败 {values['fail']} 次。"
         )
@@ -186,7 +194,9 @@ class ZapService:
         return Outcome(
             ok=True,
             reason=result.reason,
-            text="\n".join(parts),
+            text=main_text + "\n" + stats_text,
+            main_text=main_text,
+            stats_text=stats_text,
             roll=roll,
             target=req.target,
             kwh=roll.kwh,

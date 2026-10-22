@@ -174,7 +174,14 @@ class VoltToy(Star):
 
         avatar = self._avatar(event, target) if outcome.ok else ""
         if avatar:
-            yield event.chain_result([Plain(outcome.text), Image.fromURL(avatar)])
+            # 顺序固定：被电文案 → 头像 → 统计
+            yield event.chain_result(
+                [
+                    Plain(outcome.main_text),
+                    Image.fromURL(avatar),
+                    Plain(outcome.stats_text),
+                ]
+            )
         else:
             yield event.plain_result(outcome.text)
 

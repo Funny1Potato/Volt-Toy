@@ -136,14 +136,18 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
     )
     outcome = await runtime.service.zap(request)
 
+    avatar = b""
     if outcome.ok and config.volt_show_avatar:
-        avatar = await platform.fetch_avatar(
-            bot, session, target_id, config.volt_avatar_timeout
+        avatar = (
+            await platform.fetch_avatar(bot, session, target_id, config.volt_avatar_timeout)
+            or b""
         )
-        if avatar:
-            message = UniMessage([Text(outcome.text), Image(raw=avatar)])
-        else:
-            message = UniMessage.text(outcome.text)
+
+    if avatar:
+        # 顺序固定：被电文案 → 头像 → 统计
+        message = UniMessage(
+            [Text(outcome.main_text), Image(raw=avatar), Text(outcome.stats_text)]
+        )
     else:
         message = UniMessage.text(outcome.text)
     await message.send()
