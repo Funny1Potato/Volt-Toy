@@ -178,8 +178,8 @@ pytest
 
 ## 10. 发布与打包（2026-10-22 已发布）
 
-**PyPI 已上线**：`nonebot-plugin-volt-toy` 0.1.0 / 0.1.1 均已通过 Trusted Publishing 发布，
-0.1.1 起 PyPI 页面的 README 为面向用户的版本、author 为 Funny1Potato。
+**PyPI 已上线**：`nonebot-plugin-volt-toy` 0.1.0 / 0.1.1 / 0.1.2 / 0.1.3 均已通过 Trusted Publishing 发布，
+0.1.1 起 PyPI 页面的 README 为面向用户的版本、author 为 Funny1Potato；0.1.3 修掉了 @机器人 判定。
 
 - 发布方式：推 `vX.Y.Z` tag → `.github/workflows/pypi-publish.yml`
 - 实测：tag 工作流 success，`pip install nonebot-plugin-volt-toy==0.1.1` 后插件可加载、注册 10 个 matcher
