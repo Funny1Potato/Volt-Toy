@@ -1,0 +1,87 @@
+# 发布到 PyPI：推 vX.Y.Z tag 时构建并上传，其余情况只做构建检查。
+#
+# 首次使用前在 PyPI 配置一次 Trusted Publisher（不需要长期 token）：
+#   PyPI → Your projects → Publishing → Add a pending publisher
+#     Owner:         <你的 GitHub 用户名>
+#     Repository:    Volt-Toy
+#     Workflow name: pypi-publish.yml
+#     Environment:   pypi
+# 也可以用 API token：在仓库 Secrets 加 PYPI_API_TOKEN，按下文注释改 publish 步骤。
+
+name: Publish to PyPI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: 构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装 build
+        run: python -m pip install --upgrade build
+
+      - name: 校验 tag 与 __version__ 一致
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os, pathlib, re, sys
+
+          tag = os.environ["TAG"].lstrip("v")
+          src = pathlib.Path("nonebot_plugin_volt_toy/__init__.py").read_text(encoding="utf-8")
+          ver = re.search(r'__version__\s*=\s*"([^"]+)"', src).group(1)
+          print(f"tag={tag} __version__={ver}")
+          sys.exit(0 if tag == ver else 1)
+          PY
+
+      - name: 构建 sdist 与 wheel
+        run: python -m build
+
+      - name: 检查 wheel 内容
+        run: |
+          listing=$(unzip -l dist/*.whl)
+          echo "$listing"
+          echo "$listing" | grep -q "nonebot_plugin_volt_toy/__init__.py"
+          echo "$listing" | grep -q "volt_toy_core/service.py"
+          if echo "$listing" | grep -qE "/(tests|doc)/|main\\.py"; then
+            echo "wheel 里混进了非 Python 包文件"; exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: 上传 PyPI
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # Trusted Publishing 靠这个换临时凭据
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        # 改用 API token 时：去掉上面的 id-token 权限，并改成
+        # with:
+        #   password: ${{ secrets.PYPI_API_TOKEN }}

@@ -115,8 +115,10 @@ Volt-Toy/
 - 群开关（`zapon/zapoff`）只在内存，重启回默认。
 - 额度、冷却、跳闸也是内存态，重启清空——这是有意的，不写盘。
 - 头像只对 QQ 系协议（onebot / qq）生效，其它协议静默跳过。
-- 分发时 `volt_toy_core` 与插件打在同一个 wheel 里（`[tool.setuptools] packages`）。
-  将来若要独立发布 `volt-toy-core`，需要把内核移出插件分发包并加依赖。
+- 分发：用 hatchling 打包，`volt_toy_core` 与插件在同一个 wheel 里
+  （`[tool.hatch.build.targets.wheel] packages`），`version` 取自
+  `nonebot_plugin_volt_toy/__init__.py` 的 `__version__`。若将来要独立发布
+  `volt-toy-core`，需要改成依赖并拆包。
 - `[tool.nonebot]` 里的 `upstream_url` 还是占位地址，发布前替换。
 
 ## 7. 与参考插件的关系
@@ -133,7 +135,15 @@ pip install -e .
 pytest
 ```
 
-## 9. 当前进度（2026-10-22）
+## 9. 发布与打包（2026-10-22 实测）
+
+- `python -m build` 产出 sdist + wheel；两者都实测可 `pip install`，
+  安装后 `nonebot.load_plugin("nonebot_plugin_volt_toy")` 能注册 10 个 matcher。
+- wheel 内容：`nonebot_plugin_volt_toy/` + `volt_toy_core/`，不含 `main.py`/`tests`/`doc`。
+- 发布走 `.github/workflows/pypi-publish.yml`（tag 触发、Trusted Publishing）。
+- `[tool.nonebot]` 保留，供商店发布/识别插件类型。
+
+## 10. 当前进度（2026-10-22）
 
 - git 仓库已初始化（分支 `main`），首个提交 `feat: Volt-Toy 内核与 nonebot 适配首版`。
 - 已用 `python -m compileall` 做过语法检查（通过），**未运行 pytest**：
@@ -141,7 +151,7 @@ pytest
 - 恢复后第一件事：`pip install -e ".[dev]"` → `pytest` → 再起一个 nonebot 测试 bot 冒烟。
 - 环境里可用 `nb` CLI（1.4.1），可用它 `nb create` 建测试项目。
 
-## 10. 发布前检查
+## 11. 发布前检查
 
 - `pyproject.toml` 的 `[tool.nonebot]`：`plugins = ["nonebot_plugin_volt_toy"]`、
   `plugin_type = "application"`、`upstream_url` 换成真实仓库地址。
@@ -149,7 +159,7 @@ pytest
   需要拆包并把插件改成依赖 `volt-toy-core`。
 - README 里的「未跑过测试」这句，测试通过后要删掉。
 
-## 11. 与参考插件的规范对齐（nonebot_plugin_aigf_master）
+## 12. 与参考插件的规范对齐（nonebot_plugin_aigf_master）
 
 参考插件本身未完整测试过，以下结论以官方文档与源码为准（2026-10 核对）：
 
@@ -176,7 +186,7 @@ pytest
 11. 命令 matcher 显式给 `priority` / `block`；群管理判定仍用「超管 ∪ 群主 ∪ 群管理」，
     没有直接挂 `ADMIN()` 权限（那会把群主之外的管理挡掉，且频道场景语义不同）。
 
-## 12. AstrBot 适配（v0.1 已完成首版，未经真机运行）
+## 13. AstrBot 适配（v0.1 已完成首版，未经真机运行）
 
 目录约定：**仓库根目录就是 AstrBot 插件目录**（`metadata.yaml` + `main.py` + `_conf_schema.json`），
 把整个仓库克隆到 `data/plugins/` 下即可；`main.py` 把仓库根插入 `sys.path`，

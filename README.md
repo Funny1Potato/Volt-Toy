@@ -32,7 +32,9 @@ pyproject.toml              nonebot 插件发布用
 ## 快速开始（nonebot2）
 
 ```bash
-pip install -e .
+pip install nonebot-plugin-volt-toy
+# 或者从源码：
+pip install .
 ```
 
 在 bot 里加载插件：
@@ -117,6 +119,18 @@ pytest          # 32 个内核用例
 注意 **editable 安装的插件可能无法被 nonebot 识别**：PEP 660 的 finder 会绕过
 nonebot 的 `PluginFinder`，模块因而没有 `__plugin__`。用普通安装、或把插件目录放进
 `plugin_dirs`，或手动把仓库根加进 `sys.path`。
+
+## 发布（PyPI）
+
+版本号在 `nonebot_plugin_volt_toy/__init__.py` 的 `__version__`，打包用 hatchling：
+
+```bash
+python -m build        # 产出 dist/*.whl 与 dist/*.tar.gz
+pip install dist/*.whl # 本地验证
+```
+
+推 `vX.Y.Z` tag 会触发 `.github/workflows/pypi-publish.yml`：校验 tag 与 `__version__`
+一致、构建、检查 wheel 内容，再用 Trusted Publishing 上传（首次需在 PyPI 配一次 publisher）。
 
 ## 免责
 

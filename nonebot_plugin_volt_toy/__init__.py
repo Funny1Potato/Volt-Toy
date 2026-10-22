@@ -4,6 +4,8 @@ v0.1 只做手动电：施电、记账、榜单、管理。
 图片检测留了挂点，暂不实现。
 """
 
+__version__ = "0.1.0"
+
 from nonebot import require
 
 # require 必须先于任何 import：否则这两个库会以「被普通 import」的方式装载，
