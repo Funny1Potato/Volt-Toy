@@ -116,6 +116,10 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
         return
 
     target_id, target_name = await _resolve_target(bot, session, target)
+    # @ 机器人时，to_me 处理会把 At 段剥掉，参数里拿不到目标；
+    # 这时回原始消息里查一次，避免把「电机器人」当成「电自己」。
+    if not target.available and await platform.mentioned_self(bot, event, session.bot_id):
+        target_id, target_name = session.bot_id, "机器人"
     if target_id == session.bot_id and target_id:
         await _reply(
             texts.render(

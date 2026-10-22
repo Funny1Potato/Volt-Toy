@@ -15,7 +15,7 @@ from typing import Any
 import httpx
 from nonebot import get_driver, logger
 from nonebot.adapters import Bot, Event
-from nonebot_plugin_alconna.uniseg import get_target
+from nonebot_plugin_alconna.uniseg import At, UniMessage, get_target
 from nonebot_plugin_uninfo import get_interface, get_session
 
 MAX_AVATAR_BYTES = 5 * 1024 * 1024
@@ -175,6 +175,36 @@ async def member_name(bot: Bot, session: SceneInfo | None, uid: str) -> str:
     except Exception as error:
         logger.debug(f"volt-toy: 取用户 {uid} 失败: {error}")
     return uid
+
+
+async def mentioned_self(bot: Bot, event: Event, self_id: str) -> bool:
+    """判断这条消息是否 @ 了机器人。
+
+    命令解析会先把「@ 机器人」剥掉（to_me 处理），所以 `/电 @bot` 在参数里
+    看不到 At，只能回到原始消息里查一次。
+    """
+    if not self_id:
+        return False
+    try:
+        message = event.get_message()
+    except Exception:
+        return False
+    try:
+        unimsg = await UniMessage.of(message, bot=bot)
+    except Exception:
+        unimsg = None
+    if unimsg is not None:
+        return any(
+            isinstance(seg, At) and str(getattr(seg, "target", "")) == self_id
+            for seg in unimsg
+        )
+    for seg in message:
+        if str(getattr(seg, "target", "")) == self_id:
+            return True
+        data = getattr(seg, "data", None)
+        if isinstance(data, dict) and str(data.get("qq", "")) == self_id:
+            return True
+    return False
 
 
 def is_admin(bot: Bot, session: SceneInfo | None, uid: str) -> bool:

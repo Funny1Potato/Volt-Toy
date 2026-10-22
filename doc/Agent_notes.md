@@ -113,6 +113,15 @@ Volt-Toy/
    `Module ... is not loaded as a plugin`。用普通安装、`plugin_dirs` 或把仓库根
    塞进 `sys.path` 都正常。
 
+## 5.2 已修：电机器人被当成电自己（0.1.1 反馈）
+
+- 现象：`/电 @机器人` 回执是自罚文案。
+- 原因：命令解析的 to_me 处理会先把「@ 机器人」的 At 段剥掉，参数里拿不到目标，
+  `_resolve_target` 退回发送者，于是走了 `self_zap`。
+- 修法：`platform.mentioned_self()` 回头检查原始消息里有没有指向 self_id 的 At；
+  只有「参数里没有目标」时才启用，不影响正常 @ 别人。
+- AstrBot 版不走 alconna 的 to_me 处理，直接读消息链里的 At，本来就没有这个问题。
+
 ## 6. 已知风险 / 待办
 
 - `session.adapter` 可能是对象而不是字符串；`platform._adapter_name` 已做兜底，
