@@ -2,7 +2,7 @@
 #
 # 首次使用前在 PyPI 配置一次 Trusted Publisher（不需要长期 token）：
 #   PyPI → Your projects → Publishing → Add a pending publisher
-#     Owner:         <你的 GitHub 用户名>
+#     Owner:         Funny1Potato
 #     Repository:    Volt-Toy
 #     Workflow name: pypi-publish.yml
 #     Environment:   pypi

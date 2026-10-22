@@ -51,7 +51,7 @@ nonebot.load_plugin("nonebot_plugin_volt_toy")
 
 ```bash
 cd AstrBot/data/plugins
-git clone <本仓库地址> Volt-Toy
+git clone https://github.com/Funny1Potato/Volt-Toy
 ```
 
 配置项在 WebUI 的插件配置页中调整，由 `_conf_schema.json` 定义。

@@ -66,4 +66,4 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 [tool.nonebot]
 plugin_type = "application"
 plugins = ["nonebot_plugin_volt_toy"]
-upstream_url = "https://github.com/your-name/Volt-Toy"
+upstream_url = "https://github.com/Funny1Potato/Volt-Toy"

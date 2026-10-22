@@ -34,7 +34,7 @@ __plugin_meta__ = PluginMetadata(
         "nonebot_plugin_alconna",
         "nonebot_plugin_uninfo",
     ),
-    homepage="https://github.com/your-name/Volt-Toy",
+    homepage="https://github.com/Funny1Potato/Volt-Toy",
     extra={"author": "Volt-Toy"},
 )
 
