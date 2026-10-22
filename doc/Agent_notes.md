@@ -122,6 +122,15 @@ Volt-Toy/
   只有「参数里没有目标」时才启用，不影响正常 @ 别人。
 - AstrBot 版不走 alconna 的 to_me 处理，直接读消息链里的 At，本来就没有这个问题。
 
+## 5.3 已防：插件与内核版本混装
+
+- 现象：`AttributeError: 'Outcome' object has no attribute 'main_text'`。
+- 原因：`nonebot_plugin_volt_toy` 是从仓库/旧目录加载的新代码，而 `volt_toy_core`
+  来自 site-packages 里的旧版本（0.1.1 以前没有拆分字段）。两个包必须同版本。
+- 修法：两个适配器改用 `getattr(outcome, "main_text", "")`，缺字段时退回整段文本并告警。
+- 正确的开发姿势：装 wheel（`pip install .`）就不要另外复制插件目录；
+  想改代码就重新 `pip install .`，别只复制其中一个包。
+
 ## 6. 已知风险 / 待办
 
 - `session.adapter` 可能是对象而不是字符串；`platform._adapter_name` 已做兜底，

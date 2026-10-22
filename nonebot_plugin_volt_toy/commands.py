@@ -148,11 +148,17 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
             or b""
         )
 
-    if avatar:
-        # 顺序固定：被电文案 → 头像 → 统计
-        message = UniMessage(
-            [Text(outcome.main_text), Image(raw=avatar), Text(outcome.stats_text)]
+    # 兼容旧内核：0.1.1 及以前的 Outcome 没有 main_text / stats_text。
+    main_text = getattr(outcome, "main_text", "")
+    stats_text = getattr(outcome, "stats_text", "")
+    if not main_text:
+        logger.warning(
+            "volt-toy: 内核版本过旧（Outcome 缺少 main_text），请升级 nonebot-plugin-volt-toy"
         )
+
+    if avatar and main_text and stats_text:
+        # 顺序固定：被电文案 → 头像 → 统计
+        message = UniMessage([Text(main_text), Image(raw=avatar), Text(stats_text)])
     else:
         message = UniMessage.text(outcome.text)
     await message.send()
