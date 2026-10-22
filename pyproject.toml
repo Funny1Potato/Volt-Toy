@@ -1,7 +1,7 @@
 [project]
 name = "nonebot-plugin-volt-toy"
 dynamic = ["version"]
-description = "电击群友：电压 / 电量 / 度数记账，失败计数，供电局文案"
+description = "用指令电群友的群聊玩具：电压、电量、度数记账，带连击、暴击与供电局文案。"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 license = { text = "MIT" }
