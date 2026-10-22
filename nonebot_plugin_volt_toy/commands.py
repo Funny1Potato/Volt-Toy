@@ -23,8 +23,9 @@ from volt_toy_core.render import info_text, rank_king, rank_kwh, rank_max, rank_
 from volt_toy_core.service import ZapRequest
 
 from . import platform
-from .runtime import config, save_whitelist, service, settings, state
-from .store import store
+from . import runtime
+from .runtime import config, save_whitelist, settings, state
+
 
 _ALCONNA_REFS: list[Alconna] = []
 
@@ -133,7 +134,7 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
         self_zap=target_id == session.user_id,
         privileged=platform.is_admin(bot, session, session.user_id),
     )
-    outcome = await service.zap(request)
+    outcome = await runtime.service.zap(request)
 
     if outcome.ok and config.volt_show_avatar:
         avatar = await platform.fetch_avatar(
@@ -154,7 +155,7 @@ async def _handle_kwh(bot: Bot, event: Event) -> None:
     if session is None:
         await _reply(_NO_SESSION)
         return
-    records = store.records(session.key)
+    records = runtime.get_store().records(session.key)
     await _reply(rank_kwh(records, settings, scope=session.key))
 
 
@@ -164,7 +165,7 @@ async def _handle_top(bot: Bot, event: Event) -> None:
     if session is None:
         await _reply(_NO_SESSION)
         return
-    records = store.records(session.key)
+    records = runtime.get_store().records(session.key)
     await _reply(rank_top(records, scope=session.key))
 
 
@@ -174,7 +175,7 @@ async def _handle_max(bot: Bot, event: Event) -> None:
     if session is None:
         await _reply(_NO_SESSION)
         return
-    records = store.records(session.key)
+    records = runtime.get_store().records(session.key)
     await _reply(rank_max(records, scope=session.key))
 
 
@@ -184,7 +185,7 @@ async def _handle_king(bot: Bot, event: Event) -> None:
     if session is None:
         await _reply(_NO_SESSION)
         return
-    await _reply(rank_king(store.records(session.key), scope=session.key))
+    await _reply(rank_king(runtime.get_store().records(session.key), scope=session.key))
 
 
 @zapinfo_cmd.handle()
@@ -194,7 +195,7 @@ async def _handle_info(bot: Bot, event: Event, target: Match[At]) -> None:
         await _reply(_NO_SESSION)
         return
     uid, name = await _resolve_target(bot, session, target)
-    record = store.records(session.key).get(uid)
+    record = runtime.get_store().records(session.key).get(uid)
     if not record:
         await _reply(texts.render(texts.MISSING_TEXT, name=name or uid))
         return
@@ -211,7 +212,7 @@ async def _handle_clear(bot: Bot, event: Event, target: Match[At]) -> None:
         await _reply("无权限使用此命令。")
         return
     uid, name = await _resolve_target(bot, session, target)
-    if not await store.clear(session.key, uid):
+    if not await runtime.get_store().clear(session.key, uid):
         await _reply(f"没有查到 {name or uid} 的用电记录。")
         return
     await _reply(

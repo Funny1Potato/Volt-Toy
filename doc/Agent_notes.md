@@ -76,16 +76,34 @@ Volt-Toy/
 - nonebot：完成首版，**未在真实环境跑过**（本机 Python 环境暂时故障）。
 - AstrBot：未开始。
 
-## 5. 环境恢复后要验证的事
+## 5. 验证状态（2026-10-22 实测）
 
-1. `pip install -e .`（或 `nb plugin install` 本地安装）能拉起依赖。
-2. `python -c "import nonebot_plugin_volt_toy"` 不报错。
-3. 冒烟：`zap @某人`、`zap`、`zapkwh`、`zapinfo`、`zapnodo`。
-4. `get_session(bot, event)` 字段确认：`session.scene_path`、`session.adapter`、
-   `session.scene.id/type/is_private`、`session.member.role`（枚举取 `.name`）。
-5. `At` 段字段：优先 `target`，其次 `qq`；显示名 `display`。
-6. `UniMessage.image(raw=bytes)` 可用。
-7. `nb plugin publish` 能通过元数据检查。
+已在 `test/` 的 nonebot 2.5.0 + onebot v11 + alconna 0.62.1 + uninfo 0.11.2 环境跑过：
+
+- [x] 内核单测 32 个全过（`pytest`）。
+- [x] 插件加载成功，注册 10 个 matcher。
+- [x] 启动钩子跑通，账本落在 `data/nonebot_plugin_volt_toy/zap.json`。
+- [x] 会话解析：`onebot11:617770183`，`role=ADMINISTRATOR/admin`，`is_admin` 为真。
+- [x] `zap`（带 At / 不带 At 电自己）、四个榜单、`zapinfo`、`zapnodo` 输出正确。
+- [x] 过载：连续 10 次后返回 `overload`。
+- [x] Alconna 规则对 `/电 @x`、`/电`、`电 @x`、`/zap @x` 均返回 True。
+
+没做的：
+
+- [ ] `nb plugin publish` 的元数据检查（要真实仓库地址与 PyPI 凭据）。
+- [ ] 真实连接 QQ 的收发（只做了事件级模拟，头像走的是 mock）。
+- [ ] AstrBot 真机运行。
+
+## 5.1 实测踩到的两个坑
+
+1. **localstore 不能在导入期取路径**：`get_plugin_data_file()` 用调用栈推断插件，
+   一旦模块不是以「插件」身份被导入（例如被别的 import finder 抢先解析），
+   直接抛 `Cannot detect caller plugin`。已改成 startup 时 `store.resolve()`。
+2. **`pip install -e` 的插件 load 不起来**：PEP 660 的 editable finder 在
+   `PathFinder` 之后才命中，nonebot 的 `PluginFinder` 用 `PathFinder` 查不到模块，
+   于是模块以普通 `SourceFileLoader` 导入、没有 `__plugin__`，报
+   `Module ... is not loaded as a plugin`。用普通安装、`plugin_dirs` 或把仓库根
+   塞进 `sys.path` 都正常。
 
 ## 6. 已知风险 / 待办
 

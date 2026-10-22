@@ -109,10 +109,14 @@ nonebot 版放在 localstore 插件数据目录；AstrBot 版放在 `data/plugin
 
 ```bash
 pip install -e ".[dev]"
-pytest
+pytest          # 32 个内核用例
 ```
 
-当前环境未跑过测试（本机 Python 环境临时故障），见 `doc/Agent_notes.md` 的待验证清单。
+冒烟测试需要真实的 nonebot 项目：把仓库根加进 `sys.path` 后
+`nonebot.load_plugin("nonebot_plugin_volt_toy")` 即可（`/zap @某人` 实测通过）。
+注意 **editable 安装的插件可能无法被 nonebot 识别**：PEP 660 的 finder 会绕过
+nonebot 的 `PluginFinder`，模块因而没有 `__plugin__`。用普通安装、或把插件目录放进
+`plugin_dirs`，或手动把仓库根加进 `sys.path`。
 
 ## 免责
 

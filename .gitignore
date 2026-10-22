@@ -8,3 +8,5 @@ build/
 *.egg-info/
 .dev/
 .DS_Store
+
+pytest-of-*/
