@@ -134,6 +134,13 @@ Volt-Toy/
 - 正确的开发姿势：装 wheel（`pip install .`）就不要另外复制插件目录；
   想改代码就重新 `pip install .`，别只复制其中一个包。
 
+## 5.4 待办：内核版本号未同步
+
+- `volt_toy_core/__init__.py` 的 `__version__` 仍是 `0.1.0`，发版时没有跟着插件版本走。
+- 目前没有任何逻辑读取它，所以不影响运行；但要做「内核与插件版本一致性检查」时必须先修。
+- 计划：下次发版时把两个 `__version__` 对齐，并在 `.github/workflows/pypi-publish.yml`
+  的 tag 校验里加一条「两者必须相等」，避免再出现只改一边的情况。
+
 ## 6. 已知风险 / 待办
 
 - `session.adapter` 可能是对象而不是字符串；`platform._adapter_name` 已做兜底，
