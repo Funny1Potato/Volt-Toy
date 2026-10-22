@@ -133,16 +133,27 @@ pytest
 
 ## 11. 与参考插件的规范对齐（nonebot_plugin_aigf_master）
 
-按参考插件改过的地方，别再改回去：
+参考插件本身未完整测试过，以下结论以官方文档与源码为准（2026-10 核对）：
 
 1. **require 必须在任何相关 import 之前**，否则库先被普通 import，`require` 会判定它不是插件。
 2. **`supported_adapters=inherit_supported_adapters("nonebot_plugin_alconna", "nonebot_plugin_uninfo")`**，
-   不要写 `None`（发布审核更认「声明了支持的适配器」）。
+   不要写 `None`。
 3. **配置类叫 `PluginConfig`，并在 config.py 里导出 `plugin_config = get_plugin_config(PluginConfig)`**；
-   字段用 `Field(default, description=...)`，描述会进配置文档。
-4. **Alconna 对象必须强引用**：alconna 规则只持弱引用，`on_alconna(Alconna(...))`
-   可能被 GC，matcher 会静默失效。代码里用 `_cmd()` 收集到 `_ALCONNA_REFS`。
-5. **会话解析不用 Uninfo 依赖注入，改用 `nonebot_plugin_uninfo.get_session(bot, event)`**，
-   失败回落到 alconna `get_target(event, bot)`；会话键用 `适配器 slug:scene_path`。
-6. **群管理角色是枚举**：`member.role.name.lower()`，直接 `str(role)` 会得到 `role.admin`。
-7. 命令 matcher 显式给 `priority` / `block`。
+   字段用 `Field(default, description=...)`。
+4. **Alconna 对象必须强引用**：规则只持弱引用，`on_alconna(Alconna(...))` 可能被 GC，
+   matcher 会静默失效。代码用 `_cmd()` 收集到 `_ALCONNA_REFS`。
+5. **会话解析**：`nonebot_plugin_uninfo.get_session(bot, event)` 是公开接口，
+   失败回落到 `nonebot_plugin_alconna.uniseg.get_target(event, bot)`。
+   `Session.scene_path` 真实存在（读源码确认），群=群号、频道=父id_子id。
+6. **角色是对象不是字符串**：`session.member.role` 是 `Role | None`，
+   字段 `id/level/name`；OneBot 的 `id` 是 `OWNER/ADMINISTRATOR/MEMBER`，
+   `name` 是小写 `owner/admin/member`。同时按 id 与 name 判断最稳。
+7. **At 段字段**：`flag`(user/role/channel)、`target`、`display`；只接受 `flag == "user"`。
+8. **`use_cmd_start` 默认 False**：不显式传 True 时，`/电` 不会被响应（alconna 文档明确写了默认值）。
+9. **`MultiVar(str, "*")` 的第二个参数是 default，不是「0 个或多个」的开关**：
+   参考插件里那种写法语义可疑，先不用；理由参数保持 `Args["reason?", str]`（单 token），
+   要改多词需按文档改用 `MultiVar(str)` + `Match[tuple[str, ...]]` 并实测。
+10. **头像**：uninfo 的 `User.avatar` 有值（OneBot 会给 qlogo 地址），
+    目标用户走 `get_interface(bot).get_user(uid).avatar`，取不到再退回 qlogo 拼接。
+11. 命令 matcher 显式给 `priority` / `block`；群管理判定仍用「超管 ∪ 群主 ∪ 群管理」，
+    没有直接挂 `ADMIN()` 权限（那会把群主之外的管理挡掉，且频道场景语义不同）。

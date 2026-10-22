@@ -1,23 +1,22 @@
 """指令层：Alconna 解析参数，平台层解析会话，业务在内核 ZapService。
 
-注意：Alconna 对象必须被强引用持有。alconna 的规则只持弱引用，若写成
-`on_alconna(Alconna(...))`，命令对象可能被 GC 回收，matcher 会静默失效。
+写法依据：
+- nonebot 官方最佳实践 `on_alconna` 页面：`Match[<type>]` 注入、`use_cmd_start`
+  默认是 False（必须显式打开才会响应 `/` 前缀）、`on_alconna(..., priority=, block=)`
+  通过 **kwargs 转发给 matcher。
+- alconna `uniseg` 页面：用 `UniMessage([Text(...), Image(...)])` 组装并 `.send()`；
+  `At` 的字段是 `flag/target/display`，`flag` 可能是 role/channel，需要过滤。
 """
 
 from __future__ import annotations
 
 from typing import Any
 
+from arclet.alconna import Alconna, Args
 from nonebot import logger
 from nonebot.adapters import Bot, Event
-from nonebot_plugin_alconna import (
-    Alconna,
-    Args,
-    At,
-    Match,
-    UniMessage,
-    on_alconna,
-)
+from nonebot_plugin_alconna import At, Image, Match, on_alconna
+from nonebot_plugin_alconna.uniseg import Text, UniMessage
 
 from volt_toy_core import texts
 from volt_toy_core.fmt import kwh_text
@@ -32,6 +31,7 @@ _ALCONNA_REFS: list[Alconna] = []
 
 
 def _cmd(*args: Any, **kwargs: Any) -> Alconna:
+    """持有强引用，避免 Alconna 被 GC 后 matcher 静默失效。"""
     alc = Alconna(*args, **kwargs)
     _ALCONNA_REFS.append(alc)
     return alc
@@ -40,34 +40,45 @@ def _cmd(*args: Any, **kwargs: Any) -> Alconna:
 zap_cmd = on_alconna(
     _cmd("zap", Args["target?", At]["reason?", str]),
     aliases={"电", "电击", "雷"},
+    use_cmd_start=True,
     priority=10,
     block=True,
 )
-zapkwh_cmd = on_alconna(_cmd("zapkwh"), aliases={"度数榜", "电费榜"}, priority=11, block=True)
-zaptop_cmd = on_alconna(_cmd("zaptop"), aliases={"被电榜"}, priority=11, block=True)
-zapmax_cmd = on_alconna(_cmd("zapmax"), aliases={"峰值榜"}, priority=11, block=True)
-zapking_cmd = on_alconna(_cmd("zapking"), aliases={"电王榜"}, priority=11, block=True)
-zapinfo_cmd = on_alconna(
-    _cmd("zapinfo", Args["target?", At]), aliases={"电档"}, priority=11, block=True
+zapkwh_cmd = on_alconna(
+    _cmd("zapkwh"), aliases={"度数榜", "电费榜"}, use_cmd_start=True, priority=11, block=True
 )
-zapclear_cmd = on_alconna(_cmd("zapclear", Args["target?", At]), priority=11, block=True)
-zapnodo_cmd = on_alconna(_cmd("zapnodo", Args["target?", At]), aliases={"绝缘"}, priority=11, block=True)
-zapon_cmd = on_alconna(_cmd("zapon"), priority=11, block=True)
-zapoff_cmd = on_alconna(_cmd("zapoff"), priority=11, block=True)
+zaptop_cmd = on_alconna(
+    _cmd("zaptop"), aliases={"被电榜"}, use_cmd_start=True, priority=11, block=True
+)
+zapmax_cmd = on_alconna(
+    _cmd("zapmax"), aliases={"峰值榜"}, use_cmd_start=True, priority=11, block=True
+)
+zapking_cmd = on_alconna(
+    _cmd("zapking"), aliases={"电王榜"}, use_cmd_start=True, priority=11, block=True
+)
+zapinfo_cmd = on_alconna(
+    _cmd("zapinfo", Args["target?", At]), aliases={"电档"}, use_cmd_start=True, priority=11, block=True
+)
+zapclear_cmd = on_alconna(
+    _cmd("zapclear", Args["target?", At]), use_cmd_start=True, priority=11, block=True
+)
+zapnodo_cmd = on_alconna(
+    _cmd("zapnodo", Args["target?", At]), aliases={"绝缘"}, use_cmd_start=True, priority=11, block=True
+)
+zapon_cmd = on_alconna(_cmd("zapon"), use_cmd_start=True, priority=11, block=True)
+zapoff_cmd = on_alconna(_cmd("zapoff"), use_cmd_start=True, priority=11, block=True)
 
 _NO_SESSION = "这个适配器没有提供会话信息，暂时电不了。"
 
 
 def _at_value(segment: Any) -> str:
+    # At 也能表示 @角色 / @频道，这里只接受具体用户
+    if str(getattr(segment, "flag", "user")) != "user":
+        return ""
     for attr in ("target", "qq", "user_id", "id"):
         value = getattr(segment, attr, None)
         if value:
             return str(value)
-    data = getattr(segment, "data", None)
-    if isinstance(data, dict):
-        for key in ("qq", "user_id", "id"):
-            if data.get(key):
-                return str(data[key])
     return ""
 
 
@@ -97,7 +108,9 @@ async def _resolve_target(
 
 
 @zap_cmd.handle()
-async def _handle_zap(bot: Bot, event: Event, target: Match[At], reason: Match[str]) -> None:
+async def _handle_zap(
+    bot: Bot, event: Event, target: Match[At], reason: Match[tuple[str, ...]]
+) -> None:
     session = await platform.resolve(bot, event)
     if session is None:
         await _reply(_NO_SESSION)
@@ -106,30 +119,37 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At], reason: Match[s
     target_id, target_name = await _resolve_target(bot, session, target)
     if target_id == session.bot_id and target_id:
         await _reply(
-            texts.render(texts.pick("bot", scope=session.key), actor=session.display_user, target=target_name)
+            texts.render(
+                texts.pick("bot", scope=session.key),
+                actor=session.display_user,
+                target=target_name,
+            )
         )
         return
 
+    reason_text = " ".join(reason.result) if reason.available else ""
     request = ZapRequest(
         gid=session.key,
         actor=session.user_id,
         target=target_id,
         actor_name=session.display_user,
         target_name=target_name or target_id,
-        reason=(reason.result if reason.available else "")[:60],
+        reason=reason_text[:60],
         self_zap=target_id == session.user_id,
         privileged=platform.is_admin(bot, session, session.user_id),
     )
     outcome = await service.zap(request)
 
-    message = UniMessage.text(outcome.text)
     if outcome.ok and config.volt_show_avatar:
-        avatar = await platform.fetch_avatar(session, target_id, config.volt_avatar_timeout)
+        avatar = await platform.fetch_avatar(
+            bot, session, target_id, config.volt_avatar_timeout
+        )
         if avatar:
-            try:
-                message = message + UniMessage.image(raw=avatar)
-            except Exception as error:
-                logger.warning(f"volt-toy 头像发送失败: {error}")
+            message = UniMessage([Text(outcome.text), Image(raw=avatar)])
+        else:
+            message = UniMessage.text(outcome.text)
+    else:
+        message = UniMessage.text(outcome.text)
     await message.send()
 
 
@@ -146,7 +166,9 @@ async def _handle_kwh(bot: Bot, event: Event) -> None:
         return
     lines = [texts.render(texts.RANK_TITLES["kwh"], limit=5)]
     for index, (uid, name, value) in enumerate(items, 1):
-        lines.append(f"{index}. {name or uid} {kwh_text(value)} 度 · 约 {settings.fee(value):.2f} 元")
+        lines.append(
+            f"{index}. {name or uid} {kwh_text(value)} 度 · 约 {settings.fee(value):.2f} 元"
+        )
     await _reply("\n".join(lines))
 
 
