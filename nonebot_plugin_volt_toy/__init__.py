@@ -38,4 +38,8 @@ __plugin_meta__ = PluginMetadata(
     extra={"License": "MIT", "Author": "Funny1Potato"},
 )
 
+from nonebot import logger  # noqa: E402
+
+logger.info(f"Volt-Toy {__version__} loaded from {__file__}")
+
 from . import commands as _commands  # noqa: E402,F401
