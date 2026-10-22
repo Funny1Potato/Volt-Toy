@@ -211,6 +211,21 @@ pytest
 - 头像是 aiocqhttp/QQ 系才拼 qlogo URL，其它平台只发文本。
 - 管理员用 `event.is_admin()`（AstrBot 的 role），没有像 nonebot 那样再查平台群管理。
 
+AstrBot 插件市场合规（2026-10-22 按官方「发布插件到插件市场」核对）：
+
+- [x] 仓库根目录有 `metadata.yaml` + `main.py`（市场按仓库根识别）。
+- [x] `name` 为 `astrbot_plugin_volt_toy`：`astrbot_plugin_` 前缀、全小写、无空格。
+- [x] `version` 为 `0.1.0`（去掉原来的 `v` 前缀，按语义化版本）。
+- [x] `author` / `name` 组合构成 plugin_id；`author` 已改成 GitHub 账号 `Funny1Potato`。
+- [x] `repo` 是合规的 HTTPS GitHub 仓库 URL（不带子目录）。
+- [x] `desc` 改为多行 Markdown；补了 `short_desc` / `support_platforms` / `tags` /
+      `astrbot_version` / `social_link`。
+- [x] 压缩包体积约 50KB，远低于 16MB 上限；`.gitignore` 已排除 `.venv`、`dist`、
+      `__pycache__`、`pytest-of-*`。
+- [ ] 尚未在 AstrBot 真机加载过；提交市场前建议先本地 `git clone` 到 `data/plugins/` 试一次。
+- 注意：仓库名是 `Volt-Toy` 而插件名是 `astrbot_plugin_volt_toy`。规范允许仓库名不同
+  （plugin_id 由 author/name 决定），但若市场审核要求仓库名与插件名一致，需要改名。
+
 待办 / 风险：
 
 - `event.is_admin()` 在 AstrBot 里通常是「机器人管理员」而非「群管理员」，若要让群管也能清档，

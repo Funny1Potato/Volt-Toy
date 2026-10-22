@@ -56,6 +56,11 @@ git clone https://github.com/Funny1Potato/Volt-Toy
 
 配置项在 WebUI 的插件配置页中调整，由 `_conf_schema.json` 定义。
 
+插件市场发布：仓库根目录已带 `metadata.yaml` 与 `main.py`，仓库体积约 50KB（远低于 16MB 上限），
+可直接在 [AstrBot Cloud 发布页](https://cloud.astrbot.app/publish) 提交。
+`metadata.yaml` 声明的支持平台是 QQ 系三个（aiocqhttp / qq_official / qq_official_webhook）；
+文本指令在其它平台理论上可用，但未实测，故未声明。
+
 ## 命令
 
 | 命令 | 别名 | 说明 |

@@ -1,7 +1,28 @@
 name: astrbot_plugin_volt_toy
 display_name: Volt-Toy 电击群友
-desc: 用指令电群友的供电局玩具：电压 / 电量 / 度数记账，失败计数，供电局口吻文案。
-short_desc: 电群友，记度数，出榜单。
-version: v0.1.0
-author: Volt-Toy
+short_desc: 电群友、记度数、出榜单的供电局玩具。
+desc: |-
+  用指令电群友的群聊玩具，统计口径是「度」。
+
+  功能：
+  - `/zap @某人` 电别人，`/zap` 电自己（0.8 倍效率）
+  - 单次同时掷电压 V 与电量 Ah，按度（kWh）累计，附电费折算
+  - 连击升档、暴击、过载跳闸；超出单目标每日上限只记失败、不加电量
+  - 榜单：度数榜、被电榜、峰值榜、电王榜；个人档案 `/zapinfo`
+  - 管理：清档、免电名单、群内启停
+
+  数据存放在 `data/plugin_data/astrbot_plugin_volt_toy/`，与 nonebot 版格式一致。
+version: 0.1.0
+author: Funny1Potato
 repo: https://github.com/Funny1Potato/Volt-Toy
+astrbot_version: ">=4.5.0"
+support_platforms:
+  - aiocqhttp
+  - qq_official
+  - qq_official_webhook
+social_link: https://github.com/Funny1Potato
+tags:
+  - 游戏
+  - 群聊
+  - 娱乐
+  - 统计
