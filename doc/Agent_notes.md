@@ -135,12 +135,19 @@ pip install -e .
 pytest
 ```
 
-## 9. 发布与打包（2026-10-22 实测）
+## 9. 发布与打包（2026-10-22 已发布）
 
-- `python -m build` 产出 sdist + wheel；两者都实测可 `pip install`，
-  安装后 `nonebot.load_plugin("nonebot_plugin_volt_toy")` 能注册 10 个 matcher。
+**PyPI 已上线**：`nonebot-plugin-volt-toy` 0.1.0 / 0.1.1 均已通过 Trusted Publishing 发布，
+0.1.1 起 PyPI 页面的 README 为面向用户的版本、author 为 Funny1Potato。
+
+- 发布方式：推 `vX.Y.Z` tag → `.github/workflows/pypi-publish.yml`
+- 实测：tag 工作流 success，`pip install nonebot-plugin-volt-toy==0.1.1` 后插件可加载、注册 10 个 matcher
+- 版本号唯一来源：`nonebot_plugin_volt_toy/__init__.py` 的 `__version__`
+
+### 打包细节
+
+- `python -m build` 产出 sdist + wheel；两者都实测可 `pip install`。
 - wheel 内容：`nonebot_plugin_volt_toy/` + `volt_toy_core/`，不含 `main.py`/`tests`/`doc`。
-- 发布走 `.github/workflows/pypi-publish.yml`（tag 触发、Trusted Publishing）。
 - `[tool.nonebot]` 保留，供商店发布/识别插件类型。
 
 ## 10. 当前进度（2026-10-22）
