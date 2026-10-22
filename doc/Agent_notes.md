@@ -116,10 +116,13 @@ Volt-Toy/
 ## 5.2 已修：电机器人被当成电自己（0.1.1 反馈）
 
 - 现象：`/电 @机器人` 回执是自罚文案。
-- 原因：命令解析的 to_me 处理会先把「@ 机器人」的 At 段剥掉，参数里拿不到目标，
-  `_resolve_target` 退回发送者，于是走了 `self_zap`。
-- 修法：`platform.mentioned_self()` 回头检查原始消息里有没有指向 self_id 的 At；
-  只有「参数里没有目标」时才启用，不影响正常 @ 别人。
+- 原因分两层：OneBot 适配器在分发前会执行 `_check_at_me`，把开头的 @机器人
+  **从 `event.message` 里删掉**并置 `to_me=True`；命令解析拿不到目标，
+  `_resolve_target` 退回发送者，于是走 `self_zap`。此时再扫 `event.get_message()`
+  已经看不到 At，只有 `event.original_message` 还留着。
+- 修法：参数里没有目标时，只要 `(not 私聊) and event.is_tome()` 为真，
+  就按「电机器人」处理；At 还在消息里的适配器另用 `mentioned_self()` 兜底。
+- 注意：`mentioned_self()` 单独一项不够，Att 被适配器提前删除后就查不到了。
 - AstrBot 版不走 alconna 的 to_me 处理，直接读消息链里的 At，本来就没有这个问题。
 
 ## 5.3 已防：插件与内核版本混装
