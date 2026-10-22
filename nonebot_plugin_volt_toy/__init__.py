@@ -20,7 +20,7 @@ from .config import PluginConfig  # noqa: E402
 
 __plugin_meta__ = PluginMetadata(
     name="Volt-Toy 电击群友",
-    description="用指令电群友：电压 / 电量 / 度数记账，失败计数，供电局文案。",
+    description="用指令电群友的群聊玩具：电压、电量、度数记账，带连击、暴击与供电局文案。",
     usage=(
         "zap [@目标] —— 施电，不 @ 则电自己\n"
         "zapkwh / zaptop / zapmax / zapking —— 度数 / 次数 / 峰值 / 电王榜\n"
