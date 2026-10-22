@@ -92,8 +92,8 @@ Volt-Toy/
 - `session.adapter` 可能是对象而不是字符串；`platform._adapter_name` 已做兜底，
   但群 key 的稳定性依赖它，验证时要打印一次实际值。
 - `At.display` 可能带 `@` 前缀，如出现脏名字，在 `_at_name` 里 lstrip。
-- 命令的 `reason` 只能取一个词（Alconna 空格分词）。要支持整句需要 `MultiVar`
-  或读原始文本，验证后再改。
+- `zap` 不接收理由（已按决定移除）。要加回来必须先把「理由用来做什么」定清楚：
+  回显 / 入账 / 影响数值，三者选一，否则它只是在日志里躺着。
 - 群开关（`zapon/zapoff`）只在内存，重启回默认。
 - 额度、冷却、跳闸也是内存态，重启清空——这是有意的，不写盘。
 - 头像只对 QQ 系协议（onebot / qq）生效，其它协议静默跳过。
@@ -151,8 +151,8 @@ pytest
 7. **At 段字段**：`flag`(user/role/channel)、`target`、`display`；只接受 `flag == "user"`。
 8. **`use_cmd_start` 默认 False**：不显式传 True 时，`/电` 不会被响应（alconna 文档明确写了默认值）。
 9. **`MultiVar(str, "*")` 的第二个参数是 default，不是「0 个或多个」的开关**：
-   参考插件里那种写法语义可疑，先不用；理由参数保持 `Args["reason?", str]`（单 token），
-   要改多词需按文档改用 `MultiVar(str)` + `Match[tuple[str, ...]]` 并实测。
+   参考插件里那种写法语义可疑，先不用。理由参数已整体移除，`zap` 只收 `At`；
+   将来若要整句文本，按文档用 `AllParam`（返回 UniMessage）或 `MultiVar(str)` 并实测。
 10. **头像**：uninfo 的 `User.avatar` 有值（OneBot 会给 qlogo 地址），
     目标用户走 `get_interface(bot).get_user(uid).avatar`，取不到再退回 qlogo 拼接。
 11. 命令 matcher 显式给 `priority` / `block`；群管理判定仍用「超管 ∪ 群主 ∪ 群管理」，

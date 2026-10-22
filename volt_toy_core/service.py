@@ -23,7 +23,6 @@ class ZapRequest:
     target: str
     actor_name: str = ""
     target_name: str = ""
-    reason: str = ""
     self_zap: bool = False
     privileged: bool = False
     now: float | None = None
@@ -212,7 +211,6 @@ class ZapService:
                 "tier": roll.tier,
                 "crit": roll.crit,
                 "combo": roll.combo,
-                "reason": req.reason[:40],
                 "result": "ok" if ok else "fail",
                 "date": today_str(now),
             }

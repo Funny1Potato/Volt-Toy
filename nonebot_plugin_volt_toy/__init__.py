@@ -20,7 +20,7 @@ __plugin_meta__ = PluginMetadata(
     name="Volt-Toy 电击群友",
     description="用指令电群友：电压 / 电量 / 度数记账，失败计数，供电局文案。",
     usage=(
-        "zap [@目标] [理由] —— 施电，不 @ 则电自己\n"
+        "zap [@目标] —— 施电，不 @ 则电自己\n"
         "zapkwh / zaptop / zapmax / zapking —— 度数 / 次数 / 峰值 / 电王榜\n"
         "zapinfo [@目标] —— 个人用电档案\n"
         "zapclear / zapnodo / zapon / zapoff —— 管理"

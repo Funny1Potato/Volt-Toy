@@ -38,7 +38,7 @@ def _cmd(*args: Any, **kwargs: Any) -> Alconna:
 
 
 zap_cmd = on_alconna(
-    _cmd("zap", Args["target?", At]["reason?", str]),
+    _cmd("zap", Args["target?", At]),
     aliases={"电", "电击", "雷"},
     use_cmd_start=True,
     priority=10,
@@ -108,9 +108,7 @@ async def _resolve_target(
 
 
 @zap_cmd.handle()
-async def _handle_zap(
-    bot: Bot, event: Event, target: Match[At], reason: Match[str]
-) -> None:
+async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
     session = await platform.resolve(bot, event)
     if session is None:
         await _reply(_NO_SESSION)
@@ -127,14 +125,12 @@ async def _handle_zap(
         )
         return
 
-    reason_text = reason.result if reason.available else ""
     request = ZapRequest(
         gid=session.key,
         actor=session.user_id,
         target=target_id,
         actor_name=session.display_user,
         target_name=target_name or target_id,
-        reason=reason_text[:60],
         self_zap=target_id == session.user_id,
         privileged=platform.is_admin(bot, session, session.user_id),
     )
