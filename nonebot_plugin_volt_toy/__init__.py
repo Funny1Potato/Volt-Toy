@@ -35,7 +35,7 @@ __plugin_meta__ = PluginMetadata(
         "nonebot_plugin_uninfo",
     ),
     homepage="https://github.com/Funny1Potato/Volt-Toy",
-    extra={"author": "Volt-Toy"},
+    extra={"License": "MIT", "Author": "Funny1Potato"},
 )
 
 from . import commands as _commands  # noqa: E402,F401
