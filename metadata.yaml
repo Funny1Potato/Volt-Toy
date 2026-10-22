@@ -1,0 +1,7 @@
+name: astrbot_plugin_volt_toy
+display_name: Volt-Toy 电击群友
+desc: 用指令电群友的供电局玩具：电压 / 电量 / 度数记账，失败计数，供电局口吻文案。
+short_desc: 电群友，记度数，出榜单。
+version: v0.1.0
+author: Volt-Toy
+repo: https://github.com/your-name/Volt-Toy

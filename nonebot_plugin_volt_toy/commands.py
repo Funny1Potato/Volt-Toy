@@ -19,8 +19,7 @@ from nonebot_plugin_alconna import At, Image, Match, on_alconna
 from nonebot_plugin_alconna.uniseg import Text, UniMessage
 
 from volt_toy_core import texts
-from volt_toy_core.fmt import kwh_text
-from volt_toy_core.rankings import kings, top
+from volt_toy_core.render import info_text, rank_king, rank_kwh, rank_max, rank_top
 from volt_toy_core.service import ZapRequest
 
 from . import platform
@@ -156,16 +155,7 @@ async def _handle_kwh(bot: Bot, event: Event) -> None:
         await _reply(_NO_SESSION)
         return
     records = store.records(session.key)
-    items = top(records, "kwh", 5)
-    if not items:
-        await _reply(texts.pick("empty", scope=session.key))
-        return
-    lines = [texts.render(texts.RANK_TITLES["kwh"], limit=5)]
-    for index, (uid, name, value) in enumerate(items, 1):
-        lines.append(
-            f"{index}. {name or uid} {kwh_text(value)} 度 · 约 {settings.fee(value):.2f} 元"
-        )
-    await _reply("\n".join(lines))
+    await _reply(rank_kwh(records, settings, scope=session.key))
 
 
 @zaptop_cmd.handle()
@@ -175,15 +165,7 @@ async def _handle_top(bot: Bot, event: Event) -> None:
         await _reply(_NO_SESSION)
         return
     records = store.records(session.key)
-    items = top(records, "num", 5)
-    if not items:
-        await _reply(texts.pick("empty", scope=session.key))
-        return
-    lines = [texts.render(texts.RANK_TITLES["top"], limit=5)]
-    for index, (uid, name, value) in enumerate(items, 1):
-        record = records.get(uid, {})
-        lines.append(f"{index}. {name or uid} {int(value)} 次（{int(record.get('fail', 0))} 失败）")
-    await _reply("\n".join(lines))
+    await _reply(rank_top(records, scope=session.key))
 
 
 @zapmax_cmd.handle()
@@ -193,18 +175,7 @@ async def _handle_max(bot: Bot, event: Event) -> None:
         await _reply(_NO_SESSION)
         return
     records = store.records(session.key)
-    items = top(records, "peak", 5)
-    if not items:
-        await _reply(texts.pick("empty", scope=session.key))
-        return
-    lines = [texts.render(texts.RANK_TITLES["max"], limit=5)]
-    for index, (uid, name, value) in enumerate(items, 1):
-        record = records.get(uid, {})
-        lines.append(
-            f"{index}. {name or uid} {kwh_text(value)} 度"
-            f"（{int(record.get('peak_volt', 0))}V / {float(record.get('peak_ah', 0)):.2f}Ah）"
-        )
-    await _reply("\n".join(lines))
+    await _reply(rank_max(records, scope=session.key))
 
 
 @zapking_cmd.handle()
@@ -213,14 +184,7 @@ async def _handle_king(bot: Bot, event: Event) -> None:
     if session is None:
         await _reply(_NO_SESSION)
         return
-    items = kings(store.records(session.key), 5)
-    if not items:
-        await _reply(texts.pick("empty", scope=session.key))
-        return
-    lines = [texts.render(texts.RANK_TITLES["king"], limit=5)]
-    for index, (uid, name, value) in enumerate(items, 1):
-        lines.append(f"{index}. {name or uid} 电王值 {value}")
-    await _reply("\n".join(lines))
+    await _reply(rank_king(store.records(session.key), scope=session.key))
 
 
 @zapinfo_cmd.handle()
@@ -234,19 +198,7 @@ async def _handle_info(bot: Bot, event: Event, target: Match[At]) -> None:
     if not record:
         await _reply(texts.render(texts.MISSING_TEXT, name=name or uid))
         return
-    total = float(record.get("kwh", 0.0))
-    await _reply(
-        texts.render(
-            texts.INFO_TEXT,
-            name=record.get("name") or name or uid,
-            n=int(record.get("num", 0)),
-            fail=int(record.get("fail", 0)),
-            day_n=int(record.get("day_num", 0)),
-            day_fail=int(record.get("day_fail", 0)),
-            total=kwh_text(total),
-            fee=f"{settings.fee(total):.2f}",
-        )
-    )
+    await _reply(info_text(record, settings, name=name))
 
 
 @zapclear_cmd.handle()

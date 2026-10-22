@@ -157,3 +157,36 @@ pytest
     目标用户走 `get_interface(bot).get_user(uid).avatar`，取不到再退回 qlogo 拼接。
 11. 命令 matcher 显式给 `priority` / `block`；群管理判定仍用「超管 ∪ 群主 ∪ 群管理」，
     没有直接挂 `ADMIN()` 权限（那会把群主之外的管理挡掉，且频道场景语义不同）。
+
+## 12. AstrBot 适配（v0.1 已完成首版，未经真机运行）
+
+目录约定：**仓库根目录就是 AstrBot 插件目录**（`metadata.yaml` + `main.py` + `_conf_schema.json`），
+把整个仓库克隆到 `data/plugins/` 下即可；`main.py` 把仓库根插入 `sys.path`，
+所以 `import volt_toy_core` 不需要额外安装。
+
+依据的官方文档（2026-10 核对）：
+
+- 插件结构：`metadata.yaml` 必填（name / desc / version / author / repo）。
+- 入口：`class X(Star)`，`__init__(self, context: Context, config: AstrBotConfig)`。
+- 配置：`_conf_schema.json`，字段 type/description/hint/default；WebUI 可视化。
+- 事件：`AstrMessageEvent` 提供 `get_sender_id()`、`get_sender_name()`、`get_group_id()`、
+  `get_self_id()`、`is_admin()`、`unified_msg_origin`（platform:type:session）、`get_messages()`。
+- 发送：`yield event.plain_result(text)` / `yield event.chain_result([Plain, Image])`。
+- 图片：`astrbot.api.message_components.Image.fromURL(url)`（也有 fromBytes/fromBase64）。
+- 数据目录：`get_astrbot_data_path() / "plugin_data" / <插件名>`。
+
+实现要点：
+
+- 会话键直接用 `event.unified_msg_origin`，天然区分平台/群/私聊，不会和 nonebot 的
+  `适配器:scene_path` 冲突（两边数据目录本就分开）。
+- @ 目标从消息链里找 `At`，跳过 `qq == "all"`（AtAll）。
+- 头像是 aiocqhttp/QQ 系才拼 qlogo URL，其它平台只发文本。
+- 管理员用 `event.is_admin()`（AstrBot 的 role），没有像 nonebot 那样再查平台群管理。
+
+待办 / 风险：
+
+- `event.is_admin()` 在 AstrBot 里通常是「机器人管理员」而非「群管理员」，若要让群管也能清档，
+  需要按平台调接口或加配置项，这个语义要和用户确认。
+- AstrBot 的数据目录函数在旧版本不存在，代码已 try/except 回退到插件目录。
+- 同一份账本在两边之间迁移需要把 key 前缀统一（nonebot `onebot11:群号` vs
+  astrbot `aiocqhttp:group:群号`），目前**没有**做迁移脚本。

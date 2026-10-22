@@ -1,0 +1,76 @@
+{
+  "volt_receive_cap": {
+    "description": "单目标每日受电上限",
+    "hint": "超出上限不拒绝，只记次数与失败，不加电量。0 表示不限。",
+    "type": "int",
+    "default": 25
+  },
+  "volt_overload_window": {
+    "description": "过载统计窗口（秒）",
+    "type": "int",
+    "default": 60
+  },
+  "volt_overload_threshold": {
+    "description": "窗口内最多施电次数",
+    "hint": "达到该次数即跳闸。",
+    "type": "int",
+    "default": 10
+  },
+  "volt_overload_ban": {
+    "description": "跳闸时长（秒）",
+    "type": "int",
+    "default": 300
+  },
+  "volt_daily_quota": {
+    "description": "每日施电额度",
+    "hint": "0 表示不限。",
+    "type": "int",
+    "default": 0
+  },
+  "volt_cooldown": {
+    "description": "同一目标冷却秒数",
+    "hint": "0 表示关闭。",
+    "type": "int",
+    "default": 0
+  },
+  "volt_crit_prob": {
+    "description": "暴击概率",
+    "type": "float",
+    "default": 0.15,
+    "slider": { "min": 0, "max": 1, "step": 0.01 }
+  },
+  "volt_self_efficiency": {
+    "description": "电自己的效率倍率",
+    "type": "float",
+    "default": 0.8,
+    "slider": { "min": 0, "max": 1, "step": 0.05 }
+  },
+  "volt_price_per_kwh": {
+    "description": "电价（元/度）",
+    "hint": "只影响展示，不影响存储。",
+    "type": "float",
+    "default": 0.55
+  },
+  "volt_is_log": {
+    "description": "写逐条审计日志",
+    "type": "bool",
+    "default": false
+  },
+  "volt_group_default": {
+    "description": "新会话默认启用",
+    "type": "bool",
+    "default": true
+  },
+  "volt_show_avatar": {
+    "description": "成功施电后附带被电者头像",
+    "hint": "仅 QQ 系平台可用，取不到时只发文本。",
+    "type": "bool",
+    "default": true
+  },
+  "volt_whitelist": {
+    "description": "免电名单初始值",
+    "hint": "用户 id 列表；运行时修改会写入 plugin_data 目录。",
+    "type": "list",
+    "default": []
+  }
+}

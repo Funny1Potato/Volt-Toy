@@ -5,6 +5,9 @@
 ## 目录
 
 ```
+main.py                     AstrBot 适配入口（仓库根目录即 AstrBot 插件目录）
+metadata.yaml               AstrBot 插件元数据
+_conf_schema.json           AstrBot 配置面板 Schema
 volt_toy_core/              框架无关内核（纯标准库）
   model.py                  三步抽样：档位 → 能量 → 拆电压/电量
   records.py                受电账本：成功/失败/峰值/首电
@@ -13,6 +16,7 @@ volt_toy_core/              框架无关内核（纯标准库）
   state.py                  热状态：冷却/连击/额度/跳闸
   service.py                编排：校验 → 抽取 → 记账 → 文案
   rankings.py               榜单聚合
+  render.py                 榜单/档案文本（两框架共用）
   settings.py               参数默认值
 nonebot_plugin_volt_toy/    nonebot2 适配（Alconna + Uninfo + localstore）
   config.py                 pydantic 配置（volt_* 字段）
@@ -20,9 +24,9 @@ nonebot_plugin_volt_toy/    nonebot2 适配（Alconna + Uninfo + localstore）
   store.py                  localstore 数据文件
   platform.py               跨协议会话：群 key / 名字 / 管理员 / 头像
   commands.py               Alconna 指令
-astrbot_plugin_volt_toy/    AstrBot 适配（未开始，见其 README）
 tests/                      内核单测
 doc/Agent_notes.md          开发笔记：决策、风险、待验证项
+pyproject.toml              nonebot 插件发布用
 ```
 
 ## 快速开始（nonebot2）
@@ -38,6 +42,17 @@ nonebot.load_plugin("nonebot_plugin_volt_toy")
 ```
 
 依赖：`nonebot-plugin-alconna`（多协议指令解析）、`nonebot-plugin-uninfo`（跨协议会话信息）、`nonebot-plugin-localstore`（数据目录）。三个都会在插件加载时用 `require()` 声明。
+
+## 快速开始（AstrBot）
+
+整个仓库就是 AstrBot 插件：把它放到 AstrBot 的 `data/plugins/` 下，重载插件即可。`main.py` 与 `volt_toy_core` 同级，不需要额外安装依赖。
+
+```bash
+cd AstrBot/data/plugins
+git clone <本仓库地址> Volt-Toy
+```
+
+配置项在 WebUI 的插件配置页中调整，由 `_conf_schema.json` 定义。
 
 ## 命令
 
@@ -81,11 +96,14 @@ nonebot.load_plugin("nonebot_plugin_volt_toy")
 
 ## 数据
 
-放在 localstore 插件数据目录：
+两边用同一套文件格式：
 
 - `zap.json` —— 群用电账本（原子写）
-- `zap_log.jsonl` —— 逐条审计（`VOLT_IS_LOG=true` 时）
+- `zap_log.jsonl` —— 逐条审计（`volt_is_log` 为真时）
 - `zap_whitelist.json` —— 免电名单
+
+nonebot 版放在 localstore 插件数据目录；AstrBot 版放在 `data/plugin_data/<插件名>/`。
+两边的账本可以直接对拷（群 key 的前缀不同，需要少量改名，见 `doc/Agent_notes.md`）。
 
 ## 开发
 
