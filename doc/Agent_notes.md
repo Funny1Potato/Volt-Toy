@@ -135,7 +135,19 @@ pip install -e .
 pytest
 ```
 
-## 9. 发布与打包（2026-10-22 已发布）
+## 9. 发布纪律（硬规则，先于一切）
+
+**发版前必须先向用户确认，得到明确同意后才执行。** 「发版」包括但不限于：
+
+- 修改 `__version__` / `pyproject` 版本号；
+- `git tag vX.Y.Z` 并 push tag（会触发 PyPI 自动发布）；
+- 手动 `twine upload` / `python -m build` 后上传；
+- 向 AstrBot 插件市场提交或更新版本。
+
+一次确认只覆盖当次版本，不默认延续到下个版本。改代码、文档、测试、提交（不 tag）不需要确认。
+用户明确说「发版」「发布」时才可进入发布流程；拿不准就先问。
+
+## 10. 发布与打包（2026-10-22 已发布）
 
 **PyPI 已上线**：`nonebot-plugin-volt-toy` 0.1.0 / 0.1.1 均已通过 Trusted Publishing 发布，
 0.1.1 起 PyPI 页面的 README 为面向用户的版本、author 为 Funny1Potato。
@@ -150,7 +162,7 @@ pytest
 - wheel 内容：`nonebot_plugin_volt_toy/` + `volt_toy_core/`，不含 `main.py`/`tests`/`doc`。
 - `[tool.nonebot]` 保留，供商店发布/识别插件类型。
 
-## 10. 当前进度（2026-10-22）
+## 11. 当前进度（2026-10-22）
 
 - git 仓库已初始化（分支 `main`），首个提交 `feat: Volt-Toy 内核与 nonebot 适配首版`。
 - 已用 `python -m compileall` 做过语法检查（通过），**未运行 pytest**：
@@ -158,7 +170,7 @@ pytest
 - 恢复后第一件事：`pip install -e ".[dev]"` → `pytest` → 再起一个 nonebot 测试 bot 冒烟。
 - 环境里可用 `nb` CLI（1.4.1），可用它 `nb create` 建测试项目。
 
-## 11. 发布前检查
+## 12. 发布前检查
 
 - `pyproject.toml` 的 `[tool.nonebot]`：`plugins = ["nonebot_plugin_volt_toy"]`、
   `plugin_type = "application"`、`upstream_url` 换成真实仓库地址。
@@ -166,7 +178,7 @@ pytest
   需要拆包并把插件改成依赖 `volt-toy-core`。
 - README 里的「未跑过测试」这句，测试通过后要删掉。
 
-## 12. 与参考插件的规范对齐（nonebot_plugin_aigf_master）
+## 13. 与参考插件的规范对齐（nonebot_plugin_aigf_master）
 
 参考插件本身未完整测试过，以下结论以官方文档与源码为准（2026-10 核对）：
 
@@ -193,7 +205,7 @@ pytest
 11. 命令 matcher 显式给 `priority` / `block`；群管理判定仍用「超管 ∪ 群主 ∪ 群管理」，
     没有直接挂 `ADMIN()` 权限（那会把群主之外的管理挡掉，且频道场景语义不同）。
 
-## 13. AstrBot 适配（v0.1 已完成首版，未经真机运行）
+## 14. AstrBot 适配（v0.1 已完成首版，未经真机运行）
 
 目录约定：**仓库根目录就是 AstrBot 插件目录**（`metadata.yaml` + `main.py` + `_conf_schema.json`），
 把整个仓库克隆到 `data/plugins/` 下即可；`main.py` 把仓库根插入 `sys.path`，
