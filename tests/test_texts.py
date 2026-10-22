@@ -56,3 +56,9 @@ def test_pick_avoids_recent_three() -> None:
 def test_tier_pool_lookup() -> None:
     texts.reset_recent()
     assert pick("雷击") in TIER_TEXTS["雷击"]
+
+def test_appendix_pools_have_no_placeholders() -> None:
+    """连击/暴击是附加句，数据由主句负责，模板里不应出现占位符。"""
+    for name in ("combo", "crit"):
+        for template in POOLS[name]:
+            assert not fields_of(template), (name, template)

@@ -19,6 +19,7 @@ from nonebot_plugin_alconna import At, Image, Match, on_alconna
 from nonebot_plugin_alconna.uniseg import Text, UniMessage
 
 from volt_toy_core import texts
+from volt_toy_core.fmt import kwh_text
 from volt_toy_core.render import info_text, rank_king, rank_kwh, rank_max, rank_top
 from volt_toy_core.service import ZapRequest
 
@@ -216,7 +217,9 @@ async def _handle_clear(bot: Bot, event: Event, target: Match[At]) -> None:
         await _reply("无权限使用此命令。")
         return
     uid, name = await _resolve_target(bot, session, target)
-    if not await runtime.get_store().clear(session.key, uid):
+    store = runtime.get_store()
+    record = store.records(session.key).get(uid) or {}
+    if not await store.clear(session.key, uid):
         await _reply(f"没有查到 {name or uid} 的用电记录。")
         return
     await _reply(
@@ -224,6 +227,8 @@ async def _handle_clear(bot: Bot, event: Event, target: Match[At]) -> None:
             texts.pick("clear", scope=session.key),
             name=name or uid,
             actor=session.display_user,
+            n=int(record.get("num", 0)),
+            total=kwh_text(float(record.get("kwh", 0.0))),
         )
     )
 

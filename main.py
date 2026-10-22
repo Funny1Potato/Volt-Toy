@@ -28,6 +28,7 @@ from astrbot.api.message_components import At, Image, Plain
 from astrbot.api.star import Context, Star
 
 from volt_toy_core import texts
+from volt_toy_core.fmt import kwh_text
 from volt_toy_core.render import info_text, rank_king, rank_kwh, rank_max, rank_top
 from volt_toy_core.service import ZapRequest, ZapService
 from volt_toy_core.settings import Settings
@@ -234,11 +235,18 @@ class VoltToy(Star):
             return
         gid = self._gid(event)
         target, target_name, _ = await self._resolve_target(event)
+        record = self._store.records(gid).get(target) or {}
         if not await self._store.clear(gid, target):
             yield event.plain_result(f"没有查到 {target_name or target} 的用电记录。")
             return
         yield event.plain_result(
-            texts.render(texts.pick("clear", scope=gid), name=target_name or target, actor=self._name(event))
+            texts.render(
+                texts.pick("clear", scope=gid),
+                name=target_name or target,
+                actor=self._name(event),
+                n=int(record.get("num", 0)),
+                total=kwh_text(float(record.get("kwh", 0.0))),
+            )
         )
 
     @filter.command("zapnodo", alias={"绝缘"})
