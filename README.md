@@ -1,13 +1,14 @@
 <div align="center">
 
-## ⚡ Volt-Toy 电击群友
+# ⚡ Volt-Toy 电击群友 ⚡
 
 用指令电群友的群聊玩具：电压、电量、度数记账，带连击、暴击与供电局文案。
 
 <p>
-    <img src="https://img.shields.io/badge/python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="python">
-    <img src="https://img.shields.io/badge/nonebot-2.3+-red?style=flat-square" alt="nonebot">
-    <img src="https://img.shields.io/pypi/v/nonebot-plugin-volt-toy?style=flat-square" alt="pypi">
+    <img src="https://img.shields.io/badge/python-3.12+-blue?style=flat-square&logo=python&logoColor=white" alt="python">
+    <img src="https://img.shields.io/badge/nonebot-2.5+-red?style=flat-square" alt="nonebot">
+    <img src="https://img.shields.io/badge/AstrBot-4.5%2B-6f42c1?style=flat-square" alt="astrbot">
+    <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="license">
 </p>
 
 </div>
@@ -24,12 +25,14 @@
 
 ## 💿 安装
 
-<details open>
-<summary>NoneBot2 · nb-cli</summary>
+<details>
+<summary>NoneBot2 · nb-cli（未上架 NoneBot 商店，可先用下面的包管理器安装）</summary>
 
 ```bash
 nb plugin install nonebot-plugin-volt-toy
 ```
+
+依赖 `nonebot-plugin-alconna`、`nonebot-plugin-uninfo`、`nonebot-plugin-localstore`，会随插件自动安装。
 
 </details>
 
@@ -56,7 +59,7 @@ plugins = ["nonebot_plugin_volt_toy"]
 
 仓库根目录同时是 AstrBot 插件。二选一：
 
-- 在 AstrBot WebUI 的插件市场搜索安装（即将上架）
+- 在 AstrBot WebUI 的插件市场搜索安装（还未上架）
 - 或把仓库克隆到 `data/plugins/`：
 
 ```bash
@@ -133,7 +136,6 @@ NoneBot 存于 localstore 插件数据目录，AstrBot 存于 `data/plugin_data/
 
 ## 💡 说明
 
-- 检测「萝莉图片」的自动电击属于后续计划，当前版本只做手动电击。
 - 电自己按 0.8 倍结算，且不占每日额度。
 - 榜单只统计成功施电；失败记录保留在账本与日志里，不进电王榜。
 
