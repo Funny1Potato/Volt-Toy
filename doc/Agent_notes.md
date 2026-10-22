@@ -114,3 +114,19 @@ cd Volt-Toy
 pip install -e .
 pytest
 ```
+
+## 9. 当前进度（2026-10-22）
+
+- git 仓库已初始化（分支 `main`），首个提交 `feat: Volt-Toy 内核与 nonebot 适配首版`。
+- 已用 `python -m compileall` 做过语法检查（通过），**未运行 pytest**：
+  本机 Python 环境的 pip 安装不稳定，等环境恢复后再跑。
+- 恢复后第一件事：`pip install -e ".[dev]"` → `pytest` → 再起一个 nonebot 测试 bot 冒烟。
+- 环境里可用 `nb` CLI（1.4.1），可用它 `nb create` 建测试项目。
+
+## 10. 发布前检查
+
+- `pyproject.toml` 的 `[tool.nonebot]`：`plugins = ["nonebot_plugin_volt_toy"]`、
+  `plugin_type = "application"`、`upstream_url` 换成真实仓库地址。
+- `[tool.setuptools] packages` 同时打包了 `volt_toy_core`；如果之后要独立发布内核，
+  需要拆包并把插件改成依赖 `volt-toy-core`。
+- README 里的「未跑过测试」这句，测试通过后要删掉。
