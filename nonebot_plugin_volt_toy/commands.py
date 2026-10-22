@@ -109,7 +109,7 @@ async def _resolve_target(
 
 @zap_cmd.handle()
 async def _handle_zap(
-    bot: Bot, event: Event, target: Match[At], reason: Match[tuple[str, ...]]
+    bot: Bot, event: Event, target: Match[At], reason: Match[str]
 ) -> None:
     session = await platform.resolve(bot, event)
     if session is None:
@@ -127,7 +127,7 @@ async def _handle_zap(
         )
         return
 
-    reason_text = " ".join(reason.result) if reason.available else ""
+    reason_text = reason.result if reason.available else ""
     request = ZapRequest(
         gid=session.key,
         actor=session.user_id,
