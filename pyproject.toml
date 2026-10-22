@@ -5,7 +5,7 @@ description = "电击群友：电压 / 电量 / 度数记账，失败计数，�
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 license = { text = "MIT" }
-authors = [{ name = "Volt-Toy" }]
+authors = [{ name = "Funny1Potato" }]
 keywords = ["nonebot", "nonebot2", "plugin", "chat", "game", "zap"]
 classifiers = [
     "Programming Language :: Python :: 3.10",
