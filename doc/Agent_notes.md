@@ -138,8 +138,8 @@ Volt-Toy/
 
 - `volt_toy_core/__init__.py` 的 `__version__` 仍是 `0.1.0`，发版时没有跟着插件版本走。
 - 目前没有任何逻辑读取它，所以不影响运行；但要做「内核与插件版本一致性检查」时必须先修。
-- 计划：下次发版时把两个 `__version__` 对齐，并在 `.github/workflows/pypi-publish.yml`
-  的 tag 校验里加一条「两者必须相等」，避免再出现只改一边的情况。
+- 已处理（0.1.5）：两处 `__version__` 对齐为同一版本，CI 的 tag 校验同时比对
+  tag、插件版本、内核版本三者。
 
 ## 5.5 目标判定顺序（2026-10-23）
 
@@ -197,7 +197,7 @@ pytest
 
 ## 10. 发布与打包（2026-10-22 已发布）
 
-**PyPI 已上线**：`nonebot-plugin-volt-toy` 0.1.0 / 0.1.1 / 0.1.2 / 0.1.3 / 0.1.4 均已通过 Trusted Publishing 发布，
+**PyPI 已上线**：`nonebot-plugin-volt-toy` 0.1.0 至 0.1.5 均已通过 Trusted Publishing 发布，
 0.1.1 起 PyPI 页面的 README 为面向用户的版本、author 为 Funny1Potato；0.1.3 修掉了 @机器人 判定。
 
 - 发布方式：推 `vX.Y.Z` tag → `.github/workflows/pypi-publish.yml`
