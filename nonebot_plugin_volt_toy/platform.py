@@ -177,6 +177,23 @@ async def member_name(bot: Bot, session: SceneInfo | None, uid: str) -> str:
     return uid
 
 
+def replied_target(event: Any) -> tuple[str, str] | None:
+    """引用回复时，取被引用消息的发送者作为默认目标。
+
+    目前只覆盖 OneBot 系（event.reply）；其它适配器没有 reply 信息时返回 None，
+    调用方会退回「电自己」。
+    """
+    reply = getattr(event, "reply", None)
+    sender = getattr(reply, "sender", None) if reply is not None else None
+    if sender is None:
+        return None
+    uid = str(getattr(sender, "user_id", "") or "")
+    if not uid:
+        return None
+    name = str(getattr(sender, "nickname", "") or getattr(sender, "card", "") or uid)
+    return uid, name
+
+
 async def mentioned_self(bot: Bot, event: Event, self_id: str) -> bool:
     """判断这条消息是否 @ 了机器人。
 

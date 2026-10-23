@@ -141,6 +141,18 @@ Volt-Toy/
 - 计划：下次发版时把两个 `__version__` 对齐，并在 `.github/workflows/pypi-publish.yml`
   的 tag 校验里加一条「两者必须相等」，避免再出现只改一边的情况。
 
+## 5.5 目标判定顺序（2026-10-23）
+
+`/电` 的目标按这个顺序取，前一个命中就不再往后看：
+
+1. 参数里的 At（正常 `@某人`）；
+2. 没有 At 时，`@机器人` 或引用机器人（`to_me`）→ 电机器人；
+3. 引用别人的消息 → 电被回复的人（OneBot 读 `event.reply.sender`，
+   AstrBot 读消息链里的 `Reply.sender_id`）；
+4. 都没有 → 电自己。
+
+注意：私聊不参与第 2 条（私聊 `to_me` 恒真），否则 `/电` 会变成电机器人。
+
 ## 6. 已知风险 / 待办
 
 - `session.adapter` 可能是对象而不是字符串；`platform._adapter_name` 已做兜底，

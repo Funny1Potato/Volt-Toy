@@ -124,6 +124,11 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
         replied_to_me = (not session.is_private) and event.is_tome()
         if at_self or replied_to_me:
             target_id, target_name = session.bot_id, "机器人"
+        else:
+            # 引用回复别人的消息时，默认电被回复的人
+            replied = platform.replied_target(event)
+            if replied is not None:
+                target_id, target_name = replied
     if target_id == session.bot_id and target_id:
         await _reply(
             texts.render(

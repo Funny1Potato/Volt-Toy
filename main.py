@@ -24,7 +24,7 @@ if str(_ROOT) not in sys.path:
 
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, filter
-from astrbot.api.message_components import At, Image, Plain
+from astrbot.api.message_components import At, Image, Plain, Reply
 from astrbot.api.star import Context, Star
 
 from volt_toy_core import texts
@@ -138,11 +138,24 @@ class VoltToy(Star):
             return ""
         return AVATAR_URL.format(uid=uid)
 
+    @staticmethod
+    def _reply_target(event: AstrMessageEvent) -> tuple[str, str] | None:
+        for component in event.get_messages():
+            if isinstance(component, Reply):
+                uid = str(getattr(component, "sender_id", "") or "")
+                if uid and uid != "0":
+                    name = str(getattr(component, "sender_nickname", "") or uid)
+                    return uid, name
+        return None
+
     async def _resolve_target(self, event: AstrMessageEvent) -> tuple[str, str, bool]:
         at = self._at_target(event)
-        if at is None:
-            return self._uid(event), self._name(event), True
-        return at[0], at[1], at[0] == self._uid(event)
+        if at is not None:
+            return at[0], at[1], at[0] == self._uid(event)
+        replied = self._reply_target(event)
+        if replied is not None:
+            return replied[0], replied[1], False
+        return self._uid(event), self._name(event), True
 
     # ---------- 指令 ----------
 
