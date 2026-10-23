@@ -34,7 +34,7 @@ jobs:
       - name: 安装 build
         run: python -m pip install --upgrade build
 
-      - name: 校验 tag 与 __version__ 一致
+      - name: 校验 tag 与两处 __version__ 一致
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           TAG: ${{ github.ref_name }}
@@ -43,10 +43,18 @@ jobs:
           import os, pathlib, re, sys
 
           tag = os.environ["TAG"].lstrip("v")
-          src = pathlib.Path("nonebot_plugin_volt_toy/__init__.py").read_text(encoding="utf-8")
-          ver = re.search(r'__version__\s*=\s*"([^"]+)"', src).group(1)
-          print(f"tag={tag} __version__={ver}")
-          sys.exit(0 if tag == ver else 1)
+          versions = {}
+          for label, path in (
+              ("plugin", "nonebot_plugin_volt_toy/__init__.py"),
+              ("core", "volt_toy_core/__init__.py"),
+          ):
+              text = pathlib.Path(path).read_text(encoding="utf-8")
+              versions[label] = re.search(
+                  r'__version__\s*=\s*"([^"]+)"', text
+              ).group(1)
+          print(f"tag={tag} plugin={versions['plugin']} core={versions['core']}")
+          ok = tag == versions["plugin"] == versions["core"]
+          sys.exit(0 if ok else 1)
           PY
 
       - name: 构建 sdist 与 wheel

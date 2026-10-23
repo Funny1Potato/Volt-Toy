@@ -4,7 +4,7 @@ v0.1 只做手动电：施电、记账、榜单、管理。
 图片检测留了挂点，暂不实现。
 """
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 from nonebot import require
 
