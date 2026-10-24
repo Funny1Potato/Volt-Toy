@@ -12,7 +12,7 @@ desc: |-
   - 管理：清档、免电名单、群内启停
 
   数据存放在 `data/plugin_data/astrbot_plugin_volt_toy/`，与 nonebot 版格式一致。
-version: 0.1.0
+version: 0.1.5
 author: Funny1Potato
 repo: https://github.com/Funny1Potato/Volt-Toy
 astrbot_version: ">=4.5.0"

@@ -59,7 +59,7 @@ plugins = ["nonebot_plugin_volt_toy"]
 
 仓库根目录同时是 AstrBot 插件。二选一：
 
-- 在 AstrBot WebUI 的插件市场搜索安装（还未上架）
+- 在 AstrBot WebUI 的插件市场搜索「Volt-Toy」安装
 - 或把仓库克隆到 `data/plugins/`：
 
 ```bash

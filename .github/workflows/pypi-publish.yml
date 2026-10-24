@@ -34,7 +34,7 @@ jobs:
       - name: 安装 build
         run: python -m pip install --upgrade build
 
-      - name: 校验 tag 与两处 __version__ 一致
+      - name: 校验 tag 与插件 / 内核 / AstrBot 版本一致
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           TAG: ${{ github.ref_name }}
@@ -52,8 +52,21 @@ jobs:
               versions[label] = re.search(
                   r'__version__\s*=\s*"([^"]+)"', text
               ).group(1)
-          print(f"tag={tag} plugin={versions['plugin']} core={versions['core']}")
-          ok = tag == versions["plugin"] == versions["core"]
+          meta = pathlib.Path("metadata.yaml").read_text(encoding="utf-8")
+          versions["astrbot"] = re.search(
+              r'^version:\s*"?([^"\s]+)"?', meta, re.MULTILINE
+          ).group(1)
+
+          print(
+              f"tag={tag} plugin={versions['plugin']} core={versions['core']} "
+              f"astrbot={versions['astrbot']}"
+          )
+          ok = (
+              tag
+              == versions["plugin"]
+              == versions["core"]
+              == versions["astrbot"]
+          )
           sys.exit(0 if ok else 1)
           PY
 

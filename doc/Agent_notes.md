@@ -138,8 +138,10 @@ Volt-Toy/
 
 - `volt_toy_core/__init__.py` 的 `__version__` 仍是 `0.1.0`，发版时没有跟着插件版本走。
 - 目前没有任何逻辑读取它，所以不影响运行；但要做「内核与插件版本一致性检查」时必须先修。
-- 已处理（0.1.5）：两处 `__version__` 对齐为同一版本，CI 的 tag 校验同时比对
-  tag、插件版本、内核版本三者。
+- 已处理（0.1.5）：插件与内核 `__version__` 对齐，CI 的 tag 校验比对
+  tag、插件版本、内核版本、`metadata.yaml` 版本四者。
+- 2026-10-24 补：AstrBot 商店审核提示 `metadata.yaml` 仍为 0.1.0，已同步到 0.1.5；
+  以后发 nonebot 版本时，`metadata.yaml` 的 `version` 必须一起改。
 
 ## 5.5 目标判定顺序（2026-10-23）
 
@@ -289,7 +291,8 @@ AstrBot 插件市场合规（2026-10-22 按官方「发布插件到插件市场�
       `astrbot_version` / `social_link`。
 - [x] 压缩包体积约 50KB，远低于 16MB 上限；`.gitignore` 已排除 `.venv`、`dist`、
       `__pycache__`、`pytest-of-*`。
-- [ ] 尚未在 AstrBot 真机加载过；提交市场前建议先本地 `git clone` 到 `data/plugins/` 试一次。
+- [x] 已上架 AstrBot 插件市场（2026-10-24 收到审核通过/上架通知），`version` 同步为 0.1.5。
+- [ ] 仍未经真机加载验证（上架审核不跑插件，只校验元数据与结构）。
 - 注意：仓库名是 `Volt-Toy` 而插件名是 `astrbot_plugin_volt_toy`。规范允许仓库名不同
   （plugin_id 由 author/name 决定），但若市场审核要求仓库名与插件名一致，需要改名。
 
