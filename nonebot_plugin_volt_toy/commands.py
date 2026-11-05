@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from arclet.alconna import Alconna, Args
@@ -18,7 +19,7 @@ from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna import At, Image, Match, on_alconna
 from nonebot_plugin_alconna.uniseg import Text, UniMessage
 
-from volt_toy_core import texts
+from volt_toy_core import effects, texts
 from volt_toy_core.fmt import kwh_text
 from volt_toy_core.render import info_text, rank_king, rank_kwh, rank_max, rank_top
 from volt_toy_core.service import ZapRequest
@@ -156,6 +157,22 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
             await platform.fetch_avatar(bot, session, target_id, config.volt_avatar_timeout)
             or b""
         )
+        if avatar and config.volt_avatar_effect and outcome.roll is not None:
+            try:
+                render = (
+                    effects.render_gif
+                    if outcome.roll.tier == "雷击" and config.volt_avatar_effect_gif
+                    else effects.render
+                )
+                avatar = await asyncio.to_thread(
+                    render,
+                    avatar,
+                    tier=outcome.roll.tier,
+                    volt=outcome.roll.volt,
+                    kwh=outcome.roll.kwh,
+                )
+            except Exception as error:
+                logger.debug(f"volt-toy: 头像特效处理失败，回退原头像: {error}")
 
     # 兼容旧内核：0.1.1 及以前的 Outcome 没有 main_text / stats_text。
     main_text = getattr(outcome, "main_text", "")
@@ -168,9 +185,12 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
     if avatar and main_text and stats_text:
         # 顺序固定：被电文案 → 头像 → 统计
         message = UniMessage([Text(main_text), Image(raw=avatar), Text(stats_text)])
-    else:
-        message = UniMessage.text(outcome.text)
-    await message.send()
+        try:
+            await message.send()
+            return
+        except Exception as error:
+            logger.debug(f"volt-toy: 发送头像消息失败，回退文本: {error}")
+    await UniMessage.text(outcome.text).send()
 
 
 @zapkwh_cmd.handle()

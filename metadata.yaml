@@ -9,10 +9,11 @@ desc: |-
   - 单次同时掷电压 V 与电量 Ah，按度（kWh）累计，附电费折算
   - 连击升档、暴击、过载跳闸；超出单目标每日上限只记失败、不加电量
   - 榜单：度数榜、被电榜、峰值榜、电王榜；个人档案 `/zapinfo`
+  - 成功电击后附原头像电击特效，雷击档可用动态 GIF（插件配置可关闭）
   - 管理：清档、免电名单、群内启停
 
   数据存放在 `data/plugin_data/astrbot_plugin_volt_toy/`，与 nonebot 版格式一致。
-version: 0.1.5
+version: 0.2.0
 author: Funny1Potato
 repo: https://github.com/Funny1Potato/Volt-Toy
 astrbot_version: ">=4.5.0"

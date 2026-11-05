@@ -1,7 +1,7 @@
 """Volt-Toy 的 AstrBot 适配。
 
 目录约定：本文件位于仓库根目录，AstrBot 把整个仓库克隆到 data/plugins/ 下即可加载；
-`volt_toy_core` 与它同级，无需另装依赖。
+`volt_toy_core` 与它同级，Pillow 依赖由同目录 requirements.txt 声明。
 
 官方依据：
 - 插件结构：metadata.yaml + main.py + _conf_schema.json
@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import sys
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 _ROOT = Path(__file__).resolve().parent
 if str(_ROOT) not in sys.path:
@@ -38,6 +39,23 @@ from volt_toy_core.storage import JsonStore, JsonlLog, read_json_list, write_jso
 PLUGIN_NAME = "astrbot_plugin_volt_toy"
 QQ_PLATFORMS = {"aiocqhttp", "qq_official", "qq_official_webhook"}
 AVATAR_URL = "https://q4.qlogo.cn/headimg_dl?dst_uin={uid}&spec=640"
+AVATAR_MAX_BYTES = 5 * 1024 * 1024
+
+
+def _download_avatar(url: str) -> bytes:
+    request = Request(url, headers={"User-Agent": "Volt-Toy/1.0"})
+    with urlopen(request, timeout=5) as response:
+        data = response.read(AVATAR_MAX_BYTES + 1)
+    if len(data) > AVATAR_MAX_BYTES:
+        raise ValueError("avatar image exceeds size limit")
+    return data
+
+
+def _render_effect(raw: bytes, tier: str, volt: int, kwh: float, animated: bool) -> bytes:
+    from volt_toy_core import effects
+
+    renderer = effects.render_gif if animated else effects.render
+    return renderer(raw, tier=tier, volt=volt, kwh=kwh)
 
 
 def _data_dir(name: str) -> Path:
@@ -138,6 +156,33 @@ class VoltToy(Star):
             return ""
         return AVATAR_URL.format(uid=uid)
 
+    async def _avatar_image(self, event: AstrMessageEvent, uid: str, outcome) -> bytes | None:
+        url = self._avatar(event, uid)
+        if not url or outcome.roll is None:
+            return None
+        try:
+            raw = await asyncio.to_thread(_download_avatar, url)
+        except Exception as error:
+            logger.debug(f"volt-toy: 头像下载失败，回退文本消息: {error}")
+            return None
+        if self.config.get("volt_avatar_effect", True):
+            animated = (
+                outcome.roll.tier == "雷击"
+                and self.config.get("volt_avatar_effect_gif", True)
+            )
+            try:
+                raw = await asyncio.to_thread(
+                    _render_effect,
+                    raw,
+                    outcome.roll.tier,
+                    outcome.roll.volt,
+                    outcome.roll.kwh,
+                    animated,
+                )
+            except Exception as error:
+                logger.debug(f"volt-toy: 头像特效处理失败，回退原头像: {error}")
+        return raw
+
     @staticmethod
     def _reply_target(event: AstrMessageEvent) -> tuple[str, str] | None:
         for component in event.get_messages():
@@ -186,13 +231,13 @@ class VoltToy(Star):
             )
         )
 
-        avatar = self._avatar(event, target) if outcome.ok else ""
+        avatar = await self._avatar_image(event, target, outcome) if outcome.ok else None
         main_text = getattr(outcome, "main_text", "")
         stats_text = getattr(outcome, "stats_text", "")
         if avatar and main_text and stats_text:
             # 顺序固定：被电文案 → 头像 → 统计
             yield event.chain_result(
-                [Plain(main_text), Image.fromURL(avatar), Plain(stats_text)]
+                [Plain(main_text), Image.fromBytes(avatar), Plain(stats_text)]
             )
         else:
             yield event.plain_result(outcome.text)

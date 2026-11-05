@@ -67,6 +67,17 @@
     "type": "bool",
     "default": true
   },
+  "volt_avatar_effect": {
+    "description": "成功电击时给头像添加电击特效",
+    "type": "bool",
+    "default": true
+  },
+  "volt_avatar_effect_gif": {
+    "description": "雷击档头像使用动态 GIF",
+    "hint": "关闭后雷击档也发送静态图片。",
+    "type": "bool",
+    "default": true
+  },
   "volt_whitelist": {
     "description": "免电名单初始值",
     "hint": "用户 id 列表；运行时修改会写入 plugin_data 目录。",

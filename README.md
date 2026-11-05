@@ -19,6 +19,7 @@
 
 - **一次电击三个数**：电压、电量、功率；统计只认度数
 - **档位**：静电 → 家用 → 工业 → 高压 → 雷击，连击与暴击会升档
+- **特效头像**：成功电击后可附带原头像电击滤镜；雷击档可发动态 GIF，特效可在配置中关闭
 - **风控**：单目标每日上限、施电过载跳闸、免电名单、群内启停
 - **失败也记账**：超出每日上限不拒绝，只记一次「失败」，电量不再增加
 - **两套框架**：NoneBot2 与 AstrBot 共用同一份数据格式与文案
@@ -67,7 +68,7 @@ cd AstrBot/data/plugins
 git clone https://github.com/Funny1Potato/Volt-Toy
 ```
 
-无需额外安装依赖，内核随仓库提供。
+无需手动安装依赖；插件依赖在 `requirements.txt` 中声明，由 AstrBot 安装流程处理。
 
 </details>
 
@@ -110,6 +111,8 @@ VOLT_IS_LOG=false          # 是否写逐条审计日志
 VOLT_GROUP_DEFAULT=true    # 新群默认启用
 VOLT_WHITELIST=[]          # 免电名单初始值
 VOLT_SHOW_AVATAR=true      # 成功施电后附被电者头像（仅 QQ 系平台）
+VOLT_AVATAR_EFFECT=true    # 给头像添加电击特效
+VOLT_AVATAR_EFFECT_GIF=true # 雷击档使用动态 GIF；关闭后雷击档仍发静态特效图
 ```
 
 ### 档位与数值
@@ -123,6 +126,28 @@ VOLT_SHOW_AVATAR=true      # 成功施电后附被电者头像（仅 QQ 系平�
 | 雷击 | 0.80–2.60 | 800–1000V | 电动车充满一次 |
 
 同一目标 10 分钟内连续受电会累积连击并升档；暴击再升一档，最高到雷击。
+
+### 电击特效
+
+成功施电后，被电者的头像会被套上一层电击滤镜：电弧带白芯、多层光晕，档位越高电弧越粗越密，高压与雷击档还有 RGB 色散。雷击档默认发三帧动态 GIF，其余档位为静态图。
+
+<details>
+<summary>点开看五个档位的实际效果</summary>
+
+<table>
+  <tr>
+    <td align="center" width="16%"><img src="assets/previews/静电.png" width="140" alt="静电"><br><sub>静电</sub></td>
+    <td align="center" width="16%"><img src="assets/previews/家用.png" width="140" alt="家用"><br><sub>家用</sub></td>
+    <td align="center" width="16%"><img src="assets/previews/工业.png" width="140" alt="工业"><br><sub>工业</sub></td>
+    <td align="center" width="16%"><img src="assets/previews/高压.png" width="140" alt="高压"><br><sub>高压</sub></td>
+    <td align="center" width="16%"><img src="assets/previews/雷击.png" width="140" alt="雷击"><br><sub>雷击（静态帧）</sub></td>
+    <td align="center" width="20%"><img src="assets/previews/雷击.gif" width="140" alt="雷击 GIF"><br><sub>雷击（动态 GIF）</sub></td>
+  </tr>
+</table>
+
+</details>
+
+渲染在本地完成，不依赖外部服务；取头像失败或渲染出错时自动回退成纯文本，不会吞掉结算结果。想关掉特效：`VOLT_AVATAR_EFFECT=false`；只关 GIF 保留静态图：`VOLT_AVATAR_EFFECT_GIF=false`。
 
 ## 🗃 数据
 
