@@ -26,44 +26,36 @@
 
 ## 💿 安装
 
-<details open>
-<summary>NoneBot2 · nb-cli（推荐）</summary>
+<details>
+<summary>NoneBot2</summary>
+
+推荐用 nb-cli 安装，插件已上架 [NoneBot 商店](https://nonebot.dev/store/plugins)：
 
 ```bash
 nb plugin install nonebot-plugin-volt-toy
 ```
 
-插件已上架 [NoneBot 商店](https://nonebot.dev/store/plugins)，`nb-cli` 会连同依赖一起装好。
-
-</details>
-
-<details>
-<summary>NoneBot2 · 包管理器</summary>
+或者直接用包管理器：
 
 ```bash
 pip install nonebot-plugin-volt-toy
 ```
 
-在 `pyproject.toml` 中确认插件已启用：
+然后在 `pyproject.toml` 中确认插件已启用：
 
 ```toml
 [tool.nonebot]
 plugins = ["nonebot_plugin_volt_toy"]
 ```
 
-</details>
-
-<details>
-<summary>依赖</summary>
-
-NoneBot 侧需要 `nonebot-plugin-alconna`、`nonebot-plugin-uninfo`、`nonebot-plugin-localstore`，会随插件自动安装；头像特效用 Pillow 渲染，也已在依赖里声明。
+依赖 `nonebot-plugin-alconna`、`nonebot-plugin-uninfo`、`nonebot-plugin-localstore` 与 `Pillow`，会随插件自动安装。
 
 </details>
 
 <details>
 <summary>AstrBot</summary>
 
-仓库根目录同时是 AstrBot 插件。二选一：
+仓库根目录同时是 AstrBot 插件，二选一：
 
 - 在 AstrBot WebUI 的插件市场搜索「Volt-Toy」安装
 - 或把仓库克隆到 `data/plugins/`：
