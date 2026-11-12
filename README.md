@@ -26,14 +26,14 @@
 
 ## 💿 安装
 
-<details>
-<summary>NoneBot2 · nb-cli（未上架 NoneBot 商店，可先用下面的包管理器安装）</summary>
+<details open>
+<summary>NoneBot2 · nb-cli（推荐）</summary>
 
 ```bash
 nb plugin install nonebot-plugin-volt-toy
 ```
 
-依赖 `nonebot-plugin-alconna`、`nonebot-plugin-uninfo`、`nonebot-plugin-localstore`，会随插件自动安装。
+插件已上架 [NoneBot 商店](https://nonebot.dev/store/plugins)，`nb-cli` 会连同依赖一起装好。
 
 </details>
 
@@ -51,7 +51,12 @@ pip install nonebot-plugin-volt-toy
 plugins = ["nonebot_plugin_volt_toy"]
 ```
 
-依赖 `nonebot-plugin-alconna`、`nonebot-plugin-uninfo`、`nonebot-plugin-localstore`，会随插件自动安装。
+</details>
+
+<details>
+<summary>依赖</summary>
+
+NoneBot 侧需要 `nonebot-plugin-alconna`、`nonebot-plugin-uninfo`、`nonebot-plugin-localstore`，会随插件自动安装；头像特效用 Pillow 渲染，也已在依赖里声明。
 
 </details>
 
