@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from nonebot import get_driver, logger
+
 from volt_toy_core.service import ZapService
 from volt_toy_core.settings import Settings
 from volt_toy_core.state import RuntimeState
@@ -50,6 +51,9 @@ def save_whitelist(items: set[str]) -> None:
 async def _prepare() -> None:
     global service
     store_module.resolve()
+    from . import platform
+
+    platform.configure_avatar_cache(store_module.AVATAR_CACHE_DIR)
     await store_module.store.load()
     state.whitelist = load_whitelist()
     service = ZapService(

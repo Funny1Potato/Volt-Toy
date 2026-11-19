@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -18,7 +19,15 @@ from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna.uniseg import At, UniMessage, get_target
 from nonebot_plugin_uninfo import get_interface, get_session
 
-MAX_AVATAR_BYTES = 5 * 1024 * 1024
+from volt_toy_core.avatars import MAX_AVATAR_BYTES, AvatarCache
+
+_avatar_cache = AvatarCache()
+
+
+def configure_avatar_cache(directory: Path | None) -> None:
+    global _avatar_cache
+    _avatar_cache = AvatarCache(directory=directory, logger=logger.debug)
+
 
 _ADAPTER_ALIASES = {
     "OneBot V11": "onebot11",
@@ -165,7 +174,9 @@ async def member_name(bot: Bot, session: SceneInfo | None, uid: str) -> str:
                 session.member_scene_type, session.member_scene_id, uid
             )
             if member is not None:
-                return str(getattr(member, "nick", "") or _user_name(getattr(member, "user", None)) or uid)
+                return str(
+                    getattr(member, "nick", "") or _user_name(getattr(member, "user", None)) or uid
+                )
         except Exception as error:
             logger.debug(f"volt-toy: 取成员 {uid} 失败: {error}")
     try:
@@ -212,8 +223,7 @@ async def mentioned_self(bot: Bot, event: Event, self_id: str) -> bool:
         unimsg = None
     if unimsg is not None:
         return any(
-            isinstance(seg, At) and str(getattr(seg, "target", "")) == self_id
-            for seg in unimsg
+            isinstance(seg, At) and str(getattr(seg, "target", "")) == self_id for seg in unimsg
         )
     for seg in message:
         if str(getattr(seg, "target", "")) == self_id:
@@ -256,17 +266,32 @@ async def _avatar_url(bot: Bot, session: SceneInfo, uid: str) -> str:
     return ""
 
 
-async def fetch_avatar(bot: Bot, session: SceneInfo, uid: str, timeout: float) -> bytes | None:
-    """尽力取头像；拿不到就返回 None，不影响文本消息。"""
-    url = await _avatar_url(bot, session, uid)
-    if not url.startswith(("http://", "https://")):
-        return None
-    try:
-        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-            response = await client.get(url)
-            if response.status_code != 200 or len(response.content) > MAX_AVATAR_BYTES:
+async def fetch_avatar(
+    bot: Bot, session: SceneInfo, uid: str, timeout: float, *, cache_enabled: bool = True
+) -> bytes | None:
+    """缓存原图；过期刷新失败时尽量沿用旧头像，不影响文本结算。"""
+
+    async def download() -> bytes | None:
+        try:
+            url = await _avatar_url(bot, session, uid)
+            if not url.startswith(("http://", "https://")):
                 return None
-            return response.content
-    except Exception as error:
-        logger.debug(f"volt-toy: 头像下载失败: {error}")
-        return None
+            async with (
+                httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client,
+                client.stream("GET", url) as response,
+            ):
+                if response.status_code != 200:
+                    return None
+                data = bytearray()
+                async for chunk in response.aiter_bytes():
+                    data.extend(chunk)
+                    if len(data) > MAX_AVATAR_BYTES:
+                        return None
+                return bytes(data)
+        except Exception as error:
+            logger.debug(f"volt-toy: 头像下载失败: {error}")
+            return None
+
+    # 不按群隔离以便同一用户跨群复用；平台与机器人维度避免跨协议 id 碰撞。
+    key = (session.slug, session.bot_id or str(bot.self_id), str(uid))
+    return await _avatar_cache.get(key, download, enabled=cache_enabled)

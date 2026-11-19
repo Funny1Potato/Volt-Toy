@@ -27,9 +27,12 @@ class PluginConfig(BaseModel):
     volt_whitelist: list[str] = Field(default_factory=list, description="免电名单初始值（用户 id）")
 
     volt_show_avatar: bool = Field(True, description="成功施电后是否附带被电者头像（仅 QQ 系协议）")
-    volt_avatar_timeout: float = Field(5.0, description="头像下载超时（秒），失败时只发文本")
+    volt_avatar_timeout: float = Field(5.0, description="头像下载超时（秒），失败时优先沿用缓存")
+    volt_avatar_cache: bool = Field(True, description="缓存头像原图，刷新失败时优先沿用旧头像")
     volt_avatar_effect: bool = Field(True, description="成功电击时给头像添加电击特效")
-    volt_avatar_effect_gif: bool = Field(True, description="雷击档头像使用动态 GIF（关闭后使用静态图）")
+    volt_avatar_effect_gif: bool = Field(
+        True, description="雷击档头像使用动态 GIF（关闭后使用静态图）"
+    )
 
 
 __all__ = ["PluginConfig", "plugin_config"]

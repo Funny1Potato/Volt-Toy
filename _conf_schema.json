@@ -67,6 +67,12 @@
     "type": "bool",
     "default": true
   },
+  "volt_avatar_cache": {
+    "description": "缓存头像原图",
+    "hint": "1 小时内复用；刷新失败时沿用 24 小时内的旧头像。存于插件数据目录下 cache/avatars，重启可复用。",
+    "type": "bool",
+    "default": true
+  },
   "volt_avatar_effect": {
     "description": "成功电击时给头像添加电击特效",
     "type": "bool",

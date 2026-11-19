@@ -12,6 +12,8 @@
 - 数据目录：data/plugin_data/<插件名>/
 """
 
+# AstrBot 必须先把插件根目录加入 sys.path，再导入共享内核。
+# ruff: noqa: E402
 from __future__ import annotations
 
 import asyncio
@@ -29,17 +31,18 @@ from astrbot.api.message_components import At, Image, Plain, Reply
 from astrbot.api.star import Context, Star
 
 from volt_toy_core import texts
+from volt_toy_core.avatars import MAX_AVATAR_BYTES, AvatarCache
 from volt_toy_core.fmt import kwh_text
 from volt_toy_core.render import info_text, rank_king, rank_kwh, rank_max, rank_top
 from volt_toy_core.service import ZapRequest, ZapService
 from volt_toy_core.settings import Settings
 from volt_toy_core.state import RuntimeState
-from volt_toy_core.storage import JsonStore, JsonlLog, read_json_list, write_json_list
+from volt_toy_core.storage import JsonlLog, JsonStore, read_json_list, write_json_list
 
 PLUGIN_NAME = "astrbot_plugin_volt_toy"
 QQ_PLATFORMS = {"aiocqhttp", "qq_official", "qq_official_webhook"}
 AVATAR_URL = "https://q4.qlogo.cn/headimg_dl?dst_uin={uid}&spec=640"
-AVATAR_MAX_BYTES = 5 * 1024 * 1024
+AVATAR_MAX_BYTES = MAX_AVATAR_BYTES
 
 
 def _download_avatar(url: str) -> bytes:
@@ -98,6 +101,9 @@ class VoltToy(Star):
         self.state = RuntimeState()
 
         base = _data_dir(getattr(self, "name", PLUGIN_NAME))
+        # 老版本的数据路径兜底沿用原账本位置，但不能把新缓存写进插件源码目录。
+        cache_dir = None if base == _ROOT / "data" else base / "cache" / "avatars"
+        self._avatar_cache = AvatarCache(directory=cache_dir, logger=logger.debug)
         self._store = JsonStore(base / "zap.json", logger=logger.warning)
         self._log = JsonlLog(base / "zap_log.jsonl")
         self._whitelist_path = base / "zap_whitelist.json"
@@ -160,15 +166,22 @@ class VoltToy(Star):
         url = self._avatar(event, uid)
         if not url or outcome.roll is None:
             return None
-        try:
-            raw = await asyncio.to_thread(_download_avatar, url)
-        except Exception as error:
-            logger.debug(f"volt-toy: 头像下载失败，回退文本消息: {error}")
+
+        async def download() -> bytes | None:
+            try:
+                return await asyncio.to_thread(_download_avatar, url)
+            except Exception as error:
+                logger.debug(f"volt-toy: 头像下载失败，尝试旧缓存或回退文本: {error}")
+                return None
+
+        raw = await self._avatar_cache.get(
+            url, download, enabled=self.config.get("volt_avatar_cache", True)
+        )
+        if raw is None:
             return None
         if self.config.get("volt_avatar_effect", True):
-            animated = (
-                outcome.roll.tier == "雷击"
-                and self.config.get("volt_avatar_effect_gif", True)
+            animated = outcome.roll.tier == "雷击" and self.config.get(
+                "volt_avatar_effect_gif", True
             )
             try:
                 raw = await asyncio.to_thread(
@@ -236,9 +249,7 @@ class VoltToy(Star):
         stats_text = getattr(outcome, "stats_text", "")
         if avatar and main_text and stats_text:
             # 顺序固定：被电文案 → 头像 → 统计
-            yield event.chain_result(
-                [Plain(main_text), Image.fromBytes(avatar), Plain(stats_text)]
-            )
+            yield event.chain_result([Plain(main_text), Image.fromBytes(avatar), Plain(stats_text)])
         else:
             yield event.plain_result(outcome.text)
 

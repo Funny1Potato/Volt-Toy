@@ -108,6 +108,7 @@ VOLT_IS_LOG=false          # 是否写逐条审计日志
 VOLT_GROUP_DEFAULT=true    # 新群默认启用
 VOLT_WHITELIST=[]          # 免电名单初始值
 VOLT_SHOW_AVATAR=true      # 成功施电后附被电者头像（仅 QQ 系平台）
+VOLT_AVATAR_CACHE=true     # 缓存头像原图，减少下载并容忍临时网络失败
 VOLT_AVATAR_EFFECT=true    # 给头像添加电击特效
 VOLT_AVATAR_EFFECT_GIF=true # 雷击档使用动态 GIF；关闭后雷击档仍发静态特效图
 ```
@@ -144,7 +145,9 @@ VOLT_AVATAR_EFFECT_GIF=true # 雷击档使用动态 GIF；关闭后雷击档仍�
 
 </details>
 
-渲染在本地完成，不依赖外部服务；取头像失败或渲染出错时自动回退成纯文本，不会吞掉结算结果。想关掉特效：`VOLT_AVATAR_EFFECT=false`；只关 GIF 保留静态图：`VOLT_AVATAR_EFFECT_GIF=false`。
+渲染在本地完成，不依赖外部服务；取头像失败且无可用缓存时回退纯文本，特效渲染失败时回退原头像，不会吞掉结算结果。想关掉特效：`VOLT_AVATAR_EFFECT=false`；只关 GIF 保留静态图：`VOLT_AVATAR_EFFECT_GIF=false`。
+
+双端默认缓存头像**原图**：1 小时内直接复用，之后按需刷新；刷新失败时允许沿用下载时间距今不超过 24 小时的旧图，30 秒内不重复请求失败的头像。同一头像的并发下载会合并，缓存最多 128 项、原图总计 32 MiB、单图 5 MiB，按 LRU 淘汰；只接受可校验的图片。缓存同时保留在内存与平台规定的目录中，重启后可继续复用；不缓存电击特效成品，磁盘读写在线程中完成，写入采用临时文件原子替换，过期文件在访问/写入缓存时惰性清理。缓存目录不可读写时退回内存缓存，不影响结算。首次下载失败仍可能只有文字；正常刷新成功时，换头像最多延迟 1 小时更新。设置 `VOLT_AVATAR_CACHE=false` 可禁用缓存（AstrBot 在插件配置中关闭 `volt_avatar_cache`）。
 
 ## 🗃 数据
 
@@ -154,12 +157,21 @@ VOLT_AVATAR_EFFECT_GIF=true # 雷击档使用动态 GIF；关闭后雷击档仍�
 | `zap_log.jsonl` | 逐条审计日志（`VOLT_IS_LOG=true` 时） |
 | `zap_whitelist.json` | 免电名单 |
 
-NoneBot 存于 localstore 插件数据目录，AstrBot 存于 `data/plugin_data/astrbot_plugin_volt_toy/`。两边格式一致，可对拷迁移。
+NoneBot 账本存于 localstore 插件数据目录，头像缓存使用 `get_plugin_cache_dir() / "avatars"`（遵循 localstore 的路径配置，不硬编码根目录）；AstrBot 账本存于 `data/plugin_data/astrbot_plugin_volt_toy/`，头像缓存存于其下的 `cache/avatars/`。两边账本格式一致，可对拷迁移；缓存可直接删除，随后自动重新下载。
 
 ## 💡 说明
 
 - 电自己按 0.8 倍结算，且不占每日额度。
 - 榜单只统计成功施电；失败记录保留在账本与日志里，不进电王榜。
+
+## 开发与回归测试
+
+```bash
+python -m pip install -e ".[dev]"
+python -m pytest
+```
+
+测试不联网，账本和持久缓存均使用临时目录，不会修改实际群数据。覆盖五档渲染、GIF/特效开关、原图与文本回退、缓存过期/刷新失败/并发合并/容量淘汰/重启恢复。NoneBot 使用独立子进程运行真实 OneBot 指令事件链；AstrBot 使用 SDK 边界桩验证适配逻辑，不替代真实 AstrBot 环境的上线验证。CI 构建前自动运行这些测试。
 
 ## 📄 许可
 

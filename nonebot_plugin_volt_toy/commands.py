@@ -24,10 +24,8 @@ from volt_toy_core.fmt import kwh_text
 from volt_toy_core.render import info_text, rank_king, rank_kwh, rank_max, rank_top
 from volt_toy_core.service import ZapRequest
 
-from . import platform
-from . import runtime
+from . import platform, runtime
 from .runtime import config, save_whitelist, settings, state
-
 
 _ALCONNA_REFS: list[Alconna] = []
 
@@ -59,13 +57,21 @@ zapking_cmd = on_alconna(
     _cmd("zapking"), aliases={"电王榜"}, use_cmd_start=True, priority=11, block=True
 )
 zapinfo_cmd = on_alconna(
-    _cmd("zapinfo", Args["target?", At]), aliases={"电档"}, use_cmd_start=True, priority=11, block=True
+    _cmd("zapinfo", Args["target?", At]),
+    aliases={"电档"},
+    use_cmd_start=True,
+    priority=11,
+    block=True,
 )
 zapclear_cmd = on_alconna(
     _cmd("zapclear", Args["target?", At]), use_cmd_start=True, priority=11, block=True
 )
 zapnodo_cmd = on_alconna(
-    _cmd("zapnodo", Args["target?", At]), aliases={"绝缘"}, use_cmd_start=True, priority=11, block=True
+    _cmd("zapnodo", Args["target?", At]),
+    aliases={"绝缘"},
+    use_cmd_start=True,
+    priority=11,
+    block=True,
 )
 zapon_cmd = on_alconna(_cmd("zapon"), use_cmd_start=True, priority=11, block=True)
 zapoff_cmd = on_alconna(_cmd("zapoff"), use_cmd_start=True, priority=11, block=True)
@@ -154,7 +160,13 @@ async def _handle_zap(bot: Bot, event: Event, target: Match[At]) -> None:
     avatar = b""
     if outcome.ok and config.volt_show_avatar:
         avatar = (
-            await platform.fetch_avatar(bot, session, target_id, config.volt_avatar_timeout)
+            await platform.fetch_avatar(
+                bot,
+                session,
+                target_id,
+                config.volt_avatar_timeout,
+                cache_enabled=config.volt_avatar_cache,
+            )
             or b""
         )
         if avatar and config.volt_avatar_effect and outcome.roll is not None:
